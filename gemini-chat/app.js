@@ -667,13 +667,8 @@ async function respond(chat) {
   state.controller = controller;
   updateSend();
 
-  let raf = 0;
-  const paint = () => {
-    raf = 0;
-    body.innerHTML = renderMarkdown(msg.text);
-    enhanceCode(body, false);
-    if (stick) scrollToBottom(false);
-  };
+  const tw = createTypewriter(body);
+  controller.signal.addEventListener('abort', () => tw.cut());
 
   const body_ = { contents, generationConfig: { temperature: state.settings.temperature } };
   if (state.settings.systemPrompt.trim()) {
@@ -722,9 +717,10 @@ async function respond(chat) {
           if (part.text && !part.thought) msg.text += part.text;
         }
         if (cand?.finishReason) finish = cand.finishReason;
-        if (!raf) raf = requestAnimationFrame(paint);
+        tw.push(msg.text);
       }
     }
+    if (msg.text) await tw.finish();
     if (!msg.text) {
       throw new Error(
         finish && finish !== 'STOP' ? `The model stopped without answering (${finish.toLowerCase().replace(/_/g, ' ')}).` : 'The model returned an empty response.',
@@ -733,7 +729,9 @@ async function respond(chat) {
   } catch (err) {
     if (err.name !== 'AbortError') msg.error = friendlyError(err.message);
   } finally {
-    cancelAnimationFrame(raf);
+    // When stopped, keep exactly what the reader saw rather than the unseen backlog.
+    if (controller.signal.aborted) msg.text = tw.visibleText();
+    tw.stop();
     state.controller = null;
     chat.updatedAt = Date.now();
     if (!msg.text && !msg.error) chat.messages.pop(); // stopped before anything arrived
@@ -744,6 +742,176 @@ async function respond(chat) {
     updateSend();
     if (wasStuck) scrollToBottom(false);
   }
+}
+
+/* ------------------------------------------------------------------ typewriter */
+
+// Gemini streams in bursts (often a sentence or paragraph at a time). Rather than
+// painting each burst as it lands, play the text out at a steady pace matched to
+// the incoming rate, reveal whole words, and fade each new word in.
+const FADE_MS = 420;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function createTypewriter(body) {
+  let target = '';
+  let shown = 0; // chars of `target` currently rendered
+  let acc = 0; // fractional chars carried between frames
+  let rate = 0; // smoothed incoming chars/sec
+  let lastPush = 0;
+  let lastFrame = 0;
+  let raf = 0;
+  let ended = false; // network finished
+  let stopped = false;
+  let renderedLen = 0; // textContent length of last render
+  let onDone = null;
+  const segments = []; // { start, end, t } — recently revealed text, by rendered offset
+
+  function push(text) {
+    const now = performance.now();
+    const added = text.length - target.length;
+    if (added > 0 && lastPush) {
+      const inst = (added * 1000) / Math.max(now - lastPush, 30);
+      rate = rate ? rate * 0.7 + inst * 0.3 : inst;
+    }
+    lastPush = now;
+    target = text;
+    schedule();
+  }
+
+  function schedule() {
+    if (!raf && !stopped) raf = requestAnimationFrame(tick);
+  }
+
+  function tick(now) {
+    raf = 0;
+    if (stopped) return;
+    const dt = lastFrame ? Math.min(now - lastFrame, 64) : 16;
+    lastFrame = now;
+
+    const backlog = target.length - shown;
+    if (backlog > 0) {
+      let cps;
+      if (reduceMotion) cps = Infinity;
+      else {
+        const base = Math.max(rate || 90, 45);
+        // Speed up gently when we fall behind so the backlog never grows unbounded.
+        cps = base * (0.85 + backlog / (base * 0.7));
+        if (ended) cps = Math.max(cps, backlog / 0.7); // wrap up within ~0.7s once complete
+        cps = Math.min(cps, 2400);
+      }
+      acc += (cps * dt) / 1000;
+      let step = Math.floor(acc);
+      if (step >= 1) {
+        acc -= step;
+        let next = Math.min(target.length, shown + step);
+        // Finish the current word so words appear whole, not letter by letter.
+        const rest = target.slice(next, next + 24);
+        const ws = rest.search(/\s/);
+        if (ws > 0) next += ws;
+        shown = next;
+        render(now);
+      }
+    } else {
+      acc = 0;
+    }
+
+    if (stick) easeToBottom();
+
+    const settled = shown >= target.length;
+    const fading = segments.length && now - segments[segments.length - 1].t < FADE_MS;
+    if (!settled || fading || (stick && !atBottom())) schedule();
+    else if (ended && onDone) {
+      onDone();
+      onDone = null;
+    }
+  }
+
+  function render(now) {
+    body.innerHTML = renderMarkdown(target.slice(0, shown));
+    const len = body.textContent.length;
+    if (len > renderedLen) segments.push({ start: renderedLen, end: len, t: now });
+    renderedLen = len;
+    while (segments.length && now - segments[0].t > FADE_MS) segments.shift();
+    if (segments.length && !reduceMotion) wrapFresh(body, segments, now);
+    enhanceCode(body, false);
+  }
+
+  return {
+    push,
+    // Resolves once everything received has been revealed and faded in.
+    finish() {
+      ended = true;
+      if (stopped) return Promise.resolve();
+      return new Promise((resolve) => {
+        onDone = resolve;
+        schedule();
+      });
+    },
+    // Freeze at what's on screen (used when the user hits stop).
+    cut() {
+      target = target.slice(0, shown);
+      ended = true;
+      onDone?.();
+      onDone = null;
+    },
+    visibleText: () => target.slice(0, shown),
+    stop() {
+      stopped = true;
+      cancelAnimationFrame(raf);
+      onDone?.();
+      onDone = null;
+    },
+  };
+}
+
+// Wrap text revealed in the last FADE_MS in spans that fade in. Each render rebuilds
+// the DOM, so a negative animation-delay resumes each fade where it left off.
+function wrapFresh(root, segments, now) {
+  const minStart = segments[0].start;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let pos = 0;
+  for (let n; (n = walker.nextNode()); ) {
+    const a = pos;
+    pos += n.length;
+    if (pos > minStart && n.data.trim()) nodes.push([n, a]);
+  }
+  for (const [n, a] of nodes) {
+    const text = n.data;
+    const frag = document.createDocumentFragment();
+    let i = 0;
+    let touched = false;
+    for (const seg of segments) {
+      const from = Math.max(seg.start - a, i);
+      const to = Math.min(seg.end - a, text.length);
+      if (to <= from) continue;
+      if (from > i) frag.append(text.slice(i, from));
+      const span = document.createElement('span');
+      span.className = 'fresh';
+      span.style.animationDelay = `${-(now - seg.t)}ms`;
+      span.textContent = text.slice(from, to);
+      frag.append(span);
+      i = to;
+      touched = true;
+    }
+    if (!touched) continue;
+    if (i < text.length) frag.append(text.slice(i));
+    n.replaceWith(frag);
+  }
+}
+
+function atBottom() {
+  const s = el.scroller;
+  return s.scrollHeight - s.scrollTop - s.clientHeight < 2;
+}
+
+// Glide toward the bottom instead of jumping a full line at a time.
+function easeToBottom() {
+  const s = el.scroller;
+  const gap = s.scrollHeight - s.clientHeight - s.scrollTop;
+  if (gap <= 1) return;
+  programmaticScroll = true;
+  s.scrollTop += gap > 400 ? gap - 400 : Math.max(1, gap * 0.22);
 }
 
 function friendlyError(message) {
@@ -835,15 +1003,28 @@ function downscale(file, max = 1536) {
 /* ------------------------------------------------------------------ scrolling */
 
 let stick = true;
+let programmaticScroll = false;
+let userScrolling = false;
+let userScrollTimer = 0;
 
 function scrollToBottom(smooth) {
+  programmaticScroll = true;
   el.scroller.scrollTo({ top: el.scroller.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
 }
 
 function onScroll() {
   const gap = el.scroller.scrollHeight - el.scroller.scrollTop - el.scroller.clientHeight;
-  stick = gap < 80;
-  el.jump.classList.toggle('show', gap > 240 && !el.thread.hidden && el.thread.children.length > 0);
+  // Our own easing can trail the content a little; only a user scroll may un-stick.
+  if (userScrolling || !programmaticScroll) stick = gap < 80;
+  else if (gap < 80) stick = true;
+  programmaticScroll = false;
+  el.jump.classList.toggle('show', gap > 240 && el.thread.children.length > 0);
+}
+
+function markUserScroll() {
+  userScrolling = true;
+  clearTimeout(userScrollTimer);
+  userScrollTimer = setTimeout(() => (userScrolling = false), 250);
 }
 
 /* ------------------------------------------------------------------ drawer */
@@ -1241,6 +1422,7 @@ function bind() {
 
   // Thread
   el.scroller.addEventListener('scroll', onScroll, { passive: true });
+  ['wheel', 'touchmove', 'pointerdown', 'keydown'].forEach((t) => el.scroller.addEventListener(t, markUserScroll, { passive: true }));
   el.jump.onclick = () => scrollToBottom(true);
   el.thread.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-copy-code]');

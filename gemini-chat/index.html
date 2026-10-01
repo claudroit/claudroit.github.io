@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <title>Lumen — Gemini Chat</title>
+  <meta name="description" content="A beautiful, mobile-first chat client for Google Gemini. Bring your own API key." />
+  <meta name="theme-color" content="#09090c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Lumen" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    try {
+      var s = JSON.parse(localStorage.getItem('lumen.settings') || '{}');
+      if (s.theme === 'light' || s.theme === 'dark') document.documentElement.dataset.theme = s.theme;
+    } catch (e) {}
+  </script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <!-- Icon sprite -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="g-spark" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#6ea8ff" />
+        <stop offset=".55" stop-color="#a78bfa" />
+        <stop offset="1" stop-color="#f472b6" />
+      </linearGradient>
+    </defs>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5z" /></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16M4 16h10" /></symbol>
+    <symbol id="i-new" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-5" /><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L13 14l-4 1 1-4 7.5-7.5z" /></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5" /></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" /></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5.5 12.5 12 19l6.5-6.5" /></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2.5" fill="currentColor" /></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3.5" /><circle cx="9" cy="10" r="1.6" /><path d="m4 17 4.5-4.5a2 2 0 0 1 2.8 0L18 19" /><path d="m14 15 1.5-1.5a2 2 0 0 1 2.8 0L20 15" /></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="m12 3.6 2.5 5.2 5.7.8-4.1 4 1 5.6L12 16.5l-5.1 2.7 1-5.6-4.1-4 5.7-.8z" /></symbol>
+    <symbol id="i-star-fill" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="m12 3.6 2.5 5.2 5.7.8-4.1 4 1 5.6L12 16.5l-5.1 2.7 1-5.6-4.1-4 5.7-.8z" /></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5" /></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="3" /><path d="M15.5 5.5v-.5a2 2 0 0 0-2-2H5.5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h.5" /></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8" /><path d="M4 4v4h4" /><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16" /><path d="M20 20v-4h-4" /></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2.2" /><circle cx="9" cy="17" r="2.2" /></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.2-4.2" /></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15M10 11v6M14 11v6M6.5 7l.8 11.2A2 2 0 0 0 9.3 20h5.4a2 2 0 0 0 2-1.8L17.5 7M9.5 7V5.5a1.5 1.5 0 0 1 1.5-1.5h2a1.5 1.5 0 0 1 1.5 1.5V7" /></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4" /><path d="m10.8 12.2 8.7-8.7M16.5 6.5l2.5 2.5M14 9l2 2" /></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="3" /></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="3" /><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" /></symbol>
+    <symbol id="i-arrow-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16 16 8M9 8h7v7" /></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 18h5M10 21h4" /><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.2h5c0-.8.4-1.6 1.1-2.2A6 6 0 0 0 12 3z" /></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8.5 8-4 4 4 4M15.5 8l4 4-4 4M13.5 5l-3 14" /></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.3" /></symbol>
+    <symbol id="i-feather" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4c-7 0-13 4-13 12v4" /><path d="M7 16c6 0 10-3 11.5-8.5" /><path d="M10 12.5h5" /></symbol>
+  </svg>
+
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ============ Onboarding ============ -->
+  <section id="onboarding" class="onboarding" hidden>
+    <div class="ob-inner">
+      <div class="ob-mark">
+        <svg class="ob-spark"><use href="#i-spark" fill="url(#g-spark)" /></svg>
+      </div>
+      <h1 class="ob-title">Talk to <em>Gemini</em>,<br />beautifully.</h1>
+      <p class="ob-sub">Lumen is a private, pocket-sized client for Google's Gemini models. Bring your own key — it never leaves this device except to talk to Google.</p>
+
+      <form id="ob-form" class="ob-form" autocomplete="off">
+        <label class="field">
+          <span class="field-icon"><svg><use href="#i-key" /></svg></span>
+          <input id="ob-key" type="password" inputmode="text" spellcheck="false" autocapitalize="off" placeholder="Paste your Gemini API key" aria-label="Gemini API key" required />
+          <button type="button" class="field-btn" data-toggle-visibility="ob-key" aria-label="Show key"><svg><use href="#i-eye" /></svg></button>
+        </label>
+        <p class="ob-error" id="ob-error" role="alert"></p>
+        <button class="btn-primary" type="submit" id="ob-submit">
+          <span class="btn-label">Continue</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <a class="ob-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">
+        Get a free key from Google AI Studio <svg><use href="#i-arrow-out" /></svg>
+      </a>
+      <p class="ob-foot"><svg><use href="#i-lock" /></svg> Stored only in your browser's local storage.</p>
+    </div>
+  </section>
+
+  <!-- ============ App ============ -->
+  <div id="app" class="app" hidden>
+    <!-- Drawer -->
+    <aside id="drawer" class="drawer" aria-label="Chats">
+      <div class="drawer-head">
+        <div class="brand">
+          <svg class="brand-spark"><use href="#i-spark" fill="url(#g-spark)" /></svg>
+          <span class="brand-name">Lumen</span>
+        </div>
+        <button class="icon-btn drawer-close" id="drawer-close" aria-label="Close menu"><svg><use href="#i-x" /></svg></button>
+      </div>
+
+      <button class="drawer-new" id="drawer-new">
+        <svg><use href="#i-new" /></svg> New chat
+      </button>
+
+      <label class="search">
+        <svg><use href="#i-search" /></svg>
+        <input id="chat-search" type="search" placeholder="Search chats" aria-label="Search chats" />
+      </label>
+
+      <nav id="chat-list" class="chat-list"></nav>
+
+      <div class="drawer-foot">
+        <button class="drawer-settings" id="open-settings">
+          <span class="avatar"><svg><use href="#i-settings" /></svg></span>
+          <span>
+            <strong>Settings</strong>
+            <small id="key-hint">API key · ••••</small>
+          </span>
+        </button>
+      </div>
+    </aside>
+    <div class="scrim" id="drawer-scrim"></div>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn" id="open-drawer" aria-label="Open menu"><svg><use href="#i-menu" /></svg></button>
+        <button class="model-pill" id="open-models" aria-haspopup="dialog">
+          <span class="model-pill-dot"></span>
+          <span class="model-pill-name" id="model-name">Gemini</span>
+          <svg class="model-pill-chev"><use href="#i-chevron" /></svg>
+        </button>
+        <button class="icon-btn" id="new-chat" aria-label="New chat"><svg><use href="#i-new" /></svg></button>
+      </header>
+
+      <div class="scroller" id="scroller">
+        <!-- Empty state -->
+        <section class="empty" id="empty">
+          <div class="empty-orb" aria-hidden="true"><svg><use href="#i-spark" fill="url(#g-spark)" /></svg></div>
+          <h2 class="greeting"><span id="greeting">Good evening</span>.</h2>
+          <p class="greeting-sub">What's on your mind?</p>
+
+          <div class="fav-row-wrap" id="fav-row-wrap">
+            <div class="fav-row-label">Favorite models</div>
+            <div class="fav-row" id="fav-row"></div>
+          </div>
+
+          <div class="suggestions" id="suggestions">
+            <button class="suggestion" data-prompt="Explain how black holes form, like I'm curious but not a physicist.">
+              <span class="sg-icon"><svg><use href="#i-bulb" /></svg></span>
+              <span class="sg-title">Explain black holes</span>
+              <span class="sg-sub">Curious, not a physicist</span>
+            </button>
+            <button class="suggestion" data-prompt="Plan a relaxed, food-focused weekend in Lisbon with a rough itinerary.">
+              <span class="sg-icon"><svg><use href="#i-map" /></svg></span>
+              <span class="sg-title">Plan a weekend</span>
+              <span class="sg-sub">Food-focused, in Lisbon</span>
+            </button>
+            <button class="suggestion" data-prompt="Write a small, well-commented JavaScript debounce function and explain when to use it.">
+              <span class="sg-icon"><svg><use href="#i-code" /></svg></span>
+              <span class="sg-title">Write a debounce</span>
+              <span class="sg-sub">With a clear explanation</span>
+            </button>
+            <button class="suggestion" data-prompt="Write three haiku about the first cold morning of autumn.">
+              <span class="sg-icon"><svg><use href="#i-feather" /></svg></span>
+              <span class="sg-title">Autumn haiku</span>
+              <span class="sg-sub">Three short poems</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Thread -->
+        <div class="thread" id="thread" aria-live="polite"></div>
+      </div>
+
+      <button class="jump" id="jump" aria-label="Scroll to bottom"><svg><use href="#i-down" /></svg></button>
+
+      <!-- Composer -->
+      <footer class="composer-wrap">
+        <form class="composer" id="composer">
+          <div class="tray" id="tray"></div>
+          <div class="composer-row">
+            <button type="button" class="icon-btn attach" id="attach" aria-label="Attach image"><svg><use href="#i-image" /></svg></button>
+            <input type="file" id="file" accept="image/*" multiple hidden />
+            <textarea id="input" rows="1" placeholder="Message Gemini" aria-label="Message"></textarea>
+            <button type="submit" class="send" id="send" aria-label="Send" disabled>
+              <svg class="send-up"><use href="#i-up" /></svg>
+              <svg class="send-stop"><use href="#i-stop" /></svg>
+            </button>
+          </div>
+        </form>
+        <p class="disclaimer">Gemini can make mistakes. Check important info.</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ============ Model sheet ============ -->
+  <div class="sheet-layer" id="models-sheet" role="dialog" aria-modal="true" aria-labelledby="models-title" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet">
+      <div class="sheet-grab" data-drag><span></span></div>
+      <div class="sheet-head" data-drag>
+        <h3 id="models-title">Choose a model</h3>
+        <button class="icon-btn" id="refresh-models" aria-label="Refresh models"><svg><use href="#i-refresh" /></svg></button>
+      </div>
+      <div class="sheet-tools">
+        <label class="search">
+          <svg><use href="#i-search" /></svg>
+          <input id="model-search" type="search" placeholder="Search models" aria-label="Search models" />
+        </label>
+        <div class="segmented" id="model-filter" role="tablist">
+          <button role="tab" data-filter="all" aria-selected="true">All</button>
+          <button role="tab" data-filter="fav" aria-selected="false"><svg><use href="#i-star-fill" /></svg> Favorites</button>
+        </div>
+      </div>
+      <div class="sheet-body" id="model-list"></div>
+    </div>
+  </div>
+
+  <!-- ============ Settings sheet ============ -->
+  <div class="sheet-layer" id="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet">
+      <div class="sheet-grab" data-drag><span></span></div>
+      <div class="sheet-head" data-drag>
+        <h3 id="settings-title">Settings</h3>
+        <button class="icon-btn" data-close aria-label="Close"><svg><use href="#i-x" /></svg></button>
+      </div>
+      <div class="sheet-body settings">
+        <section class="group">
+          <h4>Appearance</h4>
+          <div class="segmented wide" id="theme-seg">
+            <button data-theme-opt="system">System</button>
+            <button data-theme-opt="light">Light</button>
+            <button data-theme-opt="dark">Dark</button>
+          </div>
+        </section>
+
+        <section class="group">
+          <h4>API key</h4>
+          <label class="field">
+            <span class="field-icon"><svg><use href="#i-key" /></svg></span>
+            <input id="set-key" type="password" spellcheck="false" autocapitalize="off" placeholder="Gemini API key" aria-label="Gemini API key" />
+            <button type="button" class="field-btn" data-toggle-visibility="set-key" aria-label="Show key"><svg><use href="#i-eye" /></svg></button>
+          </label>
+          <div class="row-btns">
+            <button class="btn-soft" id="save-key">Save &amp; verify</button>
+            <a class="btn-ghost" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a key <svg><use href="#i-arrow-out" /></svg></a>
+          </div>
+        </section>
+
+        <section class="group">
+          <h4>System instructions</h4>
+          <textarea id="set-system" class="textarea" rows="4" placeholder="e.g. You are a concise assistant. Prefer short answers and bullet points."></textarea>
+        </section>
+
+        <section class="group">
+          <div class="group-row">
+            <h4>Temperature</h4>
+            <output id="temp-out" class="pill-out">1.0</output>
+          </div>
+          <input id="set-temp" type="range" min="0" max="2" step="0.1" value="1" class="range" />
+          <div class="range-legend"><span>Precise</span><span>Balanced</span><span>Creative</span></div>
+        </section>
+
+        <section class="group">
+          <h4>Behavior</h4>
+          <label class="toggle-row">
+            <span>
+              <strong>Enter to send</strong>
+              <small>Use Shift + Enter for a new line</small>
+            </span>
+            <input type="checkbox" id="set-enter" class="switch" />
+          </label>
+        </section>
+
+        <section class="group danger">
+          <h4>Data</h4>
+          <div class="row-btns">
+            <button class="btn-danger" id="clear-chats"><svg><use href="#i-trash" /></svg> Delete all chats</button>
+            <button class="btn-ghost" id="sign-out">Remove key</button>
+          </div>
+        </section>
+
+        <p class="settings-foot">Lumen · Everything is stored locally on this device.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="assertive"></div>
+</body>
+</html>

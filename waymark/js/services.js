@@ -8,13 +8,16 @@ const lang = (() => {
   return ['en', 'de', 'fr'].includes(l) ? l : 'en';
 })();
 
+// The town or city a Photon result belongs to; for a town itself, its own name.
+const cityOf = (p) => p.city || (p.type === 'city' ? p.name : '') || p.town || p.village || p.locality || p.county || '';
+
 function toPlace(f) {
   const p = f.properties || {};
   const [lon, lat] = f.geometry.coordinates;
   const street = [p.street, p.housenumber].filter(Boolean).join(' ');
   const name = p.name || street || p.city || p.county || p.state || p.country || '';
   const sub = [p.city, p.state, p.country].filter((x, i, a) => x && x !== name && a.indexOf(x) === i).join(', ');
-  return { name, sub, lat, lon };
+  return { name, sub, lat, lon, city: cityOf(p), country: p.country || '' };
 }
 
 export async function searchPlaces(q, near, signal) {
@@ -56,7 +59,10 @@ export async function searchCities(q, signal) {
     .filter((c) => plain(c.name).includes(stem)) // drop its looser sound-alike guesses
     .sort((x, y) => (y.population || 0) - (x.population || 0))
     .slice(0, 5)
-    .map((c) => ({ name: c.name, sub: [c.admin1, c.country].filter((x) => x && x !== c.name).join(', '), lat: c.latitude, lon: c.longitude }));
+    .map((c) => ({
+      name: c.name, sub: [c.admin1, c.country].filter((x) => x && x !== c.name).join(', '), lat: c.latitude, lon: c.longitude,
+      city: c.name, country: c.country || '',
+    }));
 }
 
 export const pinned = (lat, lon) => ({ name: 'Pinned place', sub: `${lat.toFixed(4)}, ${lon.toFixed(4)}`, lat, lon });
@@ -73,12 +79,27 @@ export async function reverseGeocode(lat, lon) {
     const name = p.city || p.town || p.village || p.name || p.county || p.state;
     if (!name) return null;
     const sub = [p.state, p.country].filter((x, i, a) => x && x !== name && a.indexOf(x) === i).join(', ');
-    return { name, sub, lat, lon };
+    return { name, sub, lat, lon, city: cityOf(p) || name, country: p.country || '' };
   } catch {
     return null;
   } finally {
     clearTimeout(timer);
   }
+}
+
+// The most specific name for a point (a landmark, an address, a district) along
+// with the city it is in. Used for photos and for a home address.
+export async function placeAt(lat, lon, signal) {
+  const r = await fetch(`${PHOTON}/reverse?lat=${lat}&lon=${lon}&lang=${lang}&limit=1`, { signal });
+  if (!r.ok) throw new Error('lookup failed');
+  const p = (await r.json()).features[0]?.properties;
+  if (!p) return null;
+  const city = cityOf(p);
+  const street = [p.street, p.housenumber].filter(Boolean).join(' ');
+  const name = (p.name && p.name !== city ? p.name : '') || street || p.district || p.locality || city || p.state || p.country || '';
+  if (!name) return null;
+  const sub = [city, p.country].filter((x, i, a) => x && x !== name && a.indexOf(x) === i).join(', ');
+  return { name, sub, lat, lon, city, country: p.country || '' };
 }
 
 export const legKey = (a, b) => [a.lat, a.lon, b.lat, b.lon].map((n) => n.toFixed(5)).join(',');

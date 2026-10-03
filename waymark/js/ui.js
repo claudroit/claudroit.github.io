@@ -33,6 +33,8 @@ const ICONS = {
   save: '<path d="M12 4v11M8 11l4 4 4-4M5 15v5h14v-5"/>',
   open: '<path d="M12 15V4M8 8l4-4 4 4M5 15v5h14v-5"/>',
   ruler: '<path d="M3 15L15 3l6 6L9 21zM7.5 13.5l2 2M10.5 10.5l2 2M13.5 7.5l2 2"/>',
+  home: '<path d="M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-5.5h4V20"/>',
+  photos: '<rect x="3" y="6" width="14" height="13" rx="2"/><path d="M7 3h12a2 2 0 012 2v10M3 15l4-4 4 4 2-2 4 4"/><circle cx="12.5" cy="10" r="1.3"/>',
 };
 
 export function icon(name) {

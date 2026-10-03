@@ -223,6 +223,25 @@ body.in-trip .home {
 .tally__km small { font-size: 16px; font-weight: 600; letter-spacing: 0; margin-left: 5px; }
 .tally__sub { color: var(--muted); font-size: 14.5px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+.sheet__tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.sheet__tools:empty { display: none; }
+
+/* Every place / Cities */
+.seg { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--wash); flex: none; }
+.seg button {
+  min-height: 36px; padding: 3px 13px 0; border-radius: 9px;
+  font-weight: 700; font-size: 14.5px; color: var(--muted); white-space: nowrap;
+  transition: background 0.2s var(--ease), color 0.2s, box-shadow 0.2s;
+}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(23, 32, 42, 0.14), 0 0 0 1px var(--line); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 42px; padding: 3px 13px 0 11px;
+  border-radius: 12px; border: 1.5px solid var(--line); font-weight: 700; font-size: 14.5px; white-space: nowrap;
+}
+.chip:active { background: var(--wash); }
+.chip svg { width: 19px; height: 19px; margin-top: -3px; color: var(--sign); flex: none; }
+
 .sheet__body {
   flex: 1; min-height: 0; overflow: hidden; touch-action: none;
   padding: 6px 18px calc(var(--sab) + 40px + var(--below, 0px));
@@ -261,6 +280,13 @@ body.in-trip .home {
 .strip::-webkit-scrollbar { display: none; }
 .strip button { flex: none; width: 92px; height: 92px; border-radius: 12px; overflow: hidden; background: var(--wash); }
 .strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* the places inside a city, in the Cities view */
+.places { list-style: none; margin: 10px 0 0; padding: 0; border-left: 2px solid var(--wash); }
+.places button { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; width: 100%; text-align: left; padding: 7px 4px 5px 12px; border-radius: 0 10px 10px 0; }
+.places button:active { background: var(--wash); }
+.places span { font-weight: 600; font-size: 15.5px; overflow-wrap: anywhere; }
+.places small { color: var(--muted); font-size: 13.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* ---------- Pick + replay ---------- */
 
@@ -361,6 +387,30 @@ input[type="date"].input::-webkit-date-and-time-value, input[type="time"].input:
 .quick button:active { background: var(--wash); }
 .quick svg { width: 20px; height: 20px; flex: none; margin-top: -3px; color: var(--sign); }
 
+.quick .quick__home { grid-column: 1 / -1; }
+.quick__home span { display: grid; min-width: 0; }
+.quick__home strong { font-weight: 700; }
+.quick__home small { color: var(--muted); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.quick--one { grid-template-columns: 1fr; }
+
+.panel__spacer { width: 72px; flex: none; }
+.panel__lead { color: var(--muted); margin: -2px 0 14px; }
+
+.field__label--row { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 22px; }
+.field__label em { font-style: normal; font-weight: 500; opacity: 0.75; }
+.field__act { font-weight: 700; font-size: 14px; color: var(--sign); padding: 2px 6px 0; margin: -4px -6px -4px 0; border-radius: 8px; min-height: 28px; }
+.field__act:active { background: var(--wash); }
+
+.timebox { position: relative; }
+.timebox__hint { position: absolute; left: 15px; top: 50%; transform: translateY(-40%); color: #8a959b; font-size: 17px; pointer-events: none; display: none; }
+.timebox.is-empty .timebox__hint { display: block; }
+.timebox.is-empty .input:not(:focus) { color: transparent; }
+.timebox.is-empty:focus-within .timebox__hint { display: none; }
+.timebox:not(.is-empty) .input { padding-right: 42px; }
+.timebox__clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); }
+.timebox__clear:active { background: var(--wash); }
+.timebox__clear svg { width: 16px; height: 16px; }
+
 .place { margin-bottom: 18px; display: flex; align-items: center; gap: 12px; padding: 12px 8px 12px 14px; border-radius: 14px; background: var(--wash); }
 .place svg { width: 22px; height: 22px; color: var(--sign); flex: none; }
 .place__text { flex: 1; min-width: 0; display: grid; }
@@ -383,6 +433,51 @@ input[type="date"].input::-webkit-date-and-time-value, input[type="time"].input:
 .form__extra button:disabled { opacity: 0.35; }
 .form__extra svg { width: 20px; height: 20px; margin-top: -3px; }
 .form__extra .is-danger { color: var(--danger); }
+
+/* ---------- Photo import ---------- */
+
+.importing { display: grid; justify-items: center; text-align: center; gap: 6px; padding: 36px 8px 12px; }
+.importing__art { width: 64px; height: 64px; border-radius: 20px; background: var(--wash); display: grid; place-items: center; color: var(--sign); margin-bottom: 10px; animation: bob 1.6s ease-in-out infinite; }
+.importing__art svg { width: 30px; height: 30px; }
+.importing strong { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+.importing span { color: var(--muted); font-variant-numeric: tabular-nums; max-width: 34ch; }
+.bar { width: min(280px, 100%); height: 8px; border-radius: 4px; background: var(--wash); overflow: hidden; margin-top: 12px; box-shadow: inset 0 0 0 1.5px var(--line); }
+.bar i { display: block; height: 100%; width: 0; background: var(--paint); box-shadow: inset 0 0 0 1.5px var(--ink); border-radius: 4px; transition: width 0.25s var(--ease); }
+@keyframes bob { 50% { transform: translateY(-4px); } }
+
+.found { padding: 2px 2px 16px; }
+.found__big { font-size: 24px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.15; }
+.found p:last-child { color: var(--muted); margin-top: 4px; }
+
+.citycard { border: 1px solid var(--line); border-radius: 18px; padding: 14px 14px 10px; transition: opacity 0.2s; }
+.citycard + .citycard { margin-top: 12px; }
+.citycard.is-off { opacity: 0.45; }
+.citycard__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; cursor: pointer; }
+.citycard h3 { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; }
+.citycard h3 span { font-weight: 500; color: var(--muted); font-size: 15px; margin-left: 7px; }
+.citycard__head p { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.citycard__places { list-style: none; margin: 10px 0 0; padding: 0; }
+.citycard__places li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0 4px; border-top: 1px solid var(--line); }
+.citycard__places span { font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+.citycard__places small { color: var(--muted); font-size: 13.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.citycard.is-off .citycard__places, .citycard.is-off .strip { display: none; }
+
+.strip--small { margin: 12px -14px 0 0; padding-right: 14px; }
+.strip--small span { flex: none; width: 64px; height: 64px; border-radius: 10px; overflow: hidden; background: var(--wash); }
+.strip--small img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.strip__more { display: grid !important; place-items: center; font-weight: 700; color: var(--muted); font-size: 15px; }
+
+.importnotes { margin-top: 16px; padding: 14px; border-radius: 16px; background: var(--wash); display: grid; gap: 8px; }
+.importnotes p { color: var(--muted); font-size: 14.5px; line-height: 1.45; }
+
+.switch {
+  -webkit-appearance: none; appearance: none; flex: none; position: relative;
+  width: 50px; height: 30px; border-radius: 15px; margin: 0; cursor: pointer;
+  background: #c3cbc6; transition: background 0.2s;
+}
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(23, 32, 42, 0.3); transition: transform 0.25s var(--ease); }
+.switch:checked { background: var(--sign); }
+.switch:checked::after { transform: translateX(20px); }
 
 /* ---------- Lightbox ---------- */
 

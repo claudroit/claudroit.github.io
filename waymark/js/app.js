@@ -1,9 +1,10 @@
 import * as store from './store.js';
 import {
-  searchPlaces, searchCities, reverseGeocode, pinned, fetchRoad, legKey, haversine, preparePhoto, bufToBase64, base64ToBuf,
+  searchPlaces, searchCities, reverseGeocode, placeAt, pinned, fetchRoad, legKey, haversine, preparePhoto, bufToBase64, base64ToBuf,
   fmtDist, fmtDur, fmtDate, fmtRange, daysBetween, today,
 } from './services.js';
 import { MapView } from './mapview.js';
+import { importPhotos } from './importer.js';
 import { h, icon, toast, openPanel, menu, askText, confirmAction, Sheet, isWide } from './ui.js';
 
 const $ = (id) => document.getElementById(id);
@@ -14,7 +15,13 @@ const S = {
   selected: null,
   units: localStorage.getItem('waymark.units') || (/^en-(US|GB)/.test(navigator.language) ? 'mi' : 'km'),
   mode: localStorage.getItem('waymark.mode') || 'arrows',
+  detail: localStorage.getItem('waymark.detail') || 'places', // 'places' (every stop) or 'cities'
+  view: [], // what the map and journal show: the stops, or one entry per city visit
 };
+
+function loadHome() {
+  try { return JSON.parse(localStorage.getItem('waymark.home')); } catch { return null; }
+}
 
 let map, sheet, mapOk = false;
 const noRoad = new Set(); // legs the router could not answer this session
@@ -24,17 +31,52 @@ const noRoad = new Set(); // legs the router could not answer this session
 const roadOf = (stops, i) => (i > 0 && stops[i].road?.key === legKey(stops[i - 1], stops[i]) ? stops[i].road : null);
 const legKm = (stops, i) => roadOf(stops, i)?.km ?? haversine(stops[i - 1], stops[i]);
 
-function tripStats(trip) {
-  const stops = trip.stops;
+function tripStats(trip, stops = trip.stops) {
   let km = 0, roads = 0;
-  for (let i = 1; i < stops.length; i++) { km += legKm(stops, i); if (roadOf(stops, i)) roads++; }
+  // A short walk between nearby places is never routed, so it counts as covered.
+  for (let i = 1; i < stops.length; i++) { km += legKm(stops, i); if (roadOf(stops, i) || haversine(stops[i - 1], stops[i]) < 0.3) roads++; }
   const dates = stops.map((s) => s.date).filter(Boolean).sort();
   const first = dates[0], last = dates[dates.length - 1];
   return { n: stops.length, km, roads, legs: Math.max(0, stops.length - 1), first, last, days: first ? daysBetween(first, last) : 0 };
 }
 
 const unit = () => (S.units === 'mi' ? 'mi' : 'km');
-const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+// ---------- cities ----------
+
+// Stops made before cities were recorded fall back to their own name, which is
+// usually the town; ensureCities() fills in the real one when it can.
+const cityName = (s) => (s.city || s.name || '').trim();
+const cityKey = (s) => `${cityName(s)}|${s.country || ''}`.toLowerCase();
+const countryOf = (s) => s.country || (s.sub || '').split(', ').pop() || '';
+
+// One entry per city visit: consecutive stops in the same city are merged into a
+// single point at their centre. A city visited twice appears twice, in order.
+function buildView() {
+  const trip = S.trip, stops = trip.stops;
+  if (S.detail !== 'cities') return (S.view = stops);
+  const groups = [];
+  for (const s of stops) {
+    const g = groups[groups.length - 1];
+    if (g && g.key === cityKey(s)) g.members.push(s);
+    else groups.push({ key: cityKey(s), members: [s] });
+  }
+  S.view = groups.map(({ members: m }) => {
+    const dates = m.map((x) => x.date).filter(Boolean).sort();
+    return {
+      id: 'city:' + m[0].id, virtual: true, members: m,
+      name: cityName(m[0]), sub: countryOf(m[0]),
+      lat: m.reduce((a, x) => a + x.lat, 0) / m.length, lon: m.reduce((a, x) => a + x.lon, 0) / m.length,
+      date: dates[0] || '', dateEnd: dates[dates.length - 1] || '', time: m.length === 1 ? m[0].time : '',
+      notes: m.length === 1 ? m[0].notes : '', photos: m.flatMap((x) => x.photos || []), road: null,
+    };
+  });
+  S.view.forEach((v, i) => { if (i) v.road = trip.cityRoads?.[legKey(S.view[i - 1], v)] || null; });
+  return S.view;
+}
+
+const viewDate = (s) => (s.virtual && s.dateEnd && s.dateEnd !== s.date ? `${fmtDate(s.date)} to ${fmtDate(s.dateEnd)}` : fmtDate(s.date, s.time));
+const plural = (n, word, many = word + 's') => `${n} ${n === 1 ? word : many}`;
 
 // ---------- home ----------
 
@@ -151,7 +193,9 @@ async function loadExample() {
 function tripMenu(trip, inside) {
   menu(trip.name, [
     { icon: 'pencil', label: 'Rename trip', run: () => renameTrip(trip) },
+    inside && { icon: 'photos', label: 'Import photos', run: startImport },
     inside && { icon: 'ruler', label: S.units === 'mi' ? 'Show distances in kilometres' : 'Show distances in miles', run: toggleUnits },
+    inside && { icon: 'home', label: loadHome() ? 'Change home address' : 'Set home address', run: () => askHome().then((p) => p && toast('Home saved')) },
     { icon: 'save', label: 'Save a backup file', run: () => exportTrip(trip) },
     { icon: 'trash', label: 'Delete trip', danger: true, run: () => removeTrip(trip) },
   ]);
@@ -212,9 +256,12 @@ async function importTrip(file) {
       id: store.uid(), name: String(data.trip.name || 'Imported trip').slice(0, 80), createdAt: Date.now(),
       stops: data.trip.stops.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lon)).map((s) => ({
         id: store.uid(), name: String(s.name || 'Stop'), sub: String(s.sub || ''), lat: s.lat, lon: s.lon,
+        city: typeof s.city === 'string' ? s.city : undefined, country: String(s.country || ''),
         date: /^\d{4}-\d\d-\d\d$/.test(s.date) ? s.date : '', time: /^\d\d:\d\d$/.test(s.time) ? s.time : '',
         notes: String(s.notes || ''), photos: (s.photos || []).map((id) => ids.get(id)).filter(Boolean), road: s.road || null,
       })),
+      cityRoads: data.trip.cityRoads && typeof data.trip.cityRoads === 'object' ? data.trip.cityRoads : undefined,
+      photoKeys: Array.isArray(data.trip.photoKeys) ? data.trip.photoKeys.filter((k) => typeof k === 'string') : [],
     };
     for (const p of data.photos || []) {
       await store.putPhoto({ id: ids.get(p.id), tripId: trip.id, type: 'image/jpeg', full: base64ToBuf(p.full), thumb: base64ToBuf(p.thumb) });
@@ -257,8 +304,9 @@ async function openTrip(id) {
   if (S.trip !== trip) return;
   map.resize();
   map.setPadding(camPad());
-  map.setTrip(trip.stops, S.mode);
+  map.setTrip(S.view, S.mode);
   if (trip.stops.length) map.fit({ duration: 0 });
+  if (S.detail === 'cities') ensureCities();
   ensureRoads();
 }
 
@@ -274,26 +322,34 @@ function closeTrip() {
 }
 
 function renderTrip() {
-  const trip = S.trip, stops = trip.stops, st = tripStats(trip);
+  const trip = S.trip, stops = buildView(), st = tripStats(trip, stops);
   $('trip-name').textContent = trip.name;
   document.title = `${trip.name}, Waymark`;
 
   // Say so when the figure is road distance; until routes arrive it is straight lines.
   const how = st.legs && st.roads === st.legs ? ' by road' : st.legs ? ' direct' : '';
-  const sub = !st.n ? 'No stops yet' : st.n === 1 ? 'Starting point set' : plural(st.n, 'stop') + (st.days > 1 ? ` over ${st.days} days` : '');
+  const n = trip.stops.length;
+  const what = S.detail === 'cities' && n > 1 ? `${plural(st.n, 'city', 'cities')}, ${plural(n, 'stop')}` : plural(n, 'stop');
+  const sub = !n ? 'No stops yet' : n === 1 ? 'Starting point set' : what + (st.days > 1 ? ` over ${st.days} days` : '');
   $('tally').replaceChildren(
     h('div', { class: 'tally__km' }, fmtDist(st.km, S.units), h('small', null, unit() + how)),
     h('div', { class: 'tally__sub' }, sub));
-  $('btn-add').replaceChildren(icon('plus'), st.n ? 'Add stop' : 'Add start');
+  $('btn-add').replaceChildren(icon('plus'), n ? 'Add stop' : 'Add start');
   $('btn-mode').hidden = $('btn-replay').hidden = st.n < 2;
   $('btn-fit').hidden = !st.n;
   $('btn-mode').setAttribute('aria-pressed', String(S.mode === 'roads'));
 
+  const seg = (value, label) => h('button', { 'aria-pressed': String(S.detail === value), onclick: () => setDetail(value) }, label);
+  $('sheet-tools').replaceChildren(
+    n > 1 ? h('div', { class: 'seg', role: 'group', 'aria-label': 'How much detail to show' }, seg('places', 'Every place'), seg('cities', 'Cities')) : h('span'),
+    h('button', { class: 'chip', onclick: startImport }, icon('photos'), 'Import photos'));
+
   const body = $('sheet-body');
-  if (!st.n) {
+  if (!n) {
     body.replaceChildren(h('div', { class: 'invite' },
       h('h2', null, 'Where does the trip start?'),
-      h('p', null, 'Add your starting point. Every place you add after that gets an arrow from the one before.')));
+      h('p', null, 'Add your starting point. Every place you add after that gets an arrow from the one before.'),
+      h('p', null, 'Or import photos from the trip: Waymark reads where and when each was taken and builds the route for you.')));
     return;
   }
 
@@ -303,15 +359,21 @@ function renderTrip() {
     const road = roadOf(stops, i);
     const leg = i > 0 && h('div', { class: 'stop__leg' },
       `${fmtDist(legKm(stops, i), S.units)} ${unit()}` + (road ? `, ${fmtDur(road.min)} drive` : ''));
-    const meta = fmtDate(s.date, s.time);
+    const meta = viewDate(s);
+    const only = s.virtual ? (s.members.length === 1 ? s.members[0] : null) : s;
+    const places = s.virtual && (s.members.length > 1 || s.members[0].name !== s.name)
+      && h('ul', { class: 'places' }, ...s.members.map((m) => h('li', null,
+        h('button', { onclick: () => editStop(m), 'aria-label': `Edit ${m.name}` },
+          h('span', null, m.name), h('small', null, [m.time, m.photos?.length && plural(m.photos.length, 'photo')].filter(Boolean).join(' · '))))));
     const li = h('li', { class: 'stop' + (s.id === S.selected ? ' stop--sel' : ''), 'data-id': s.id },
       h('span', { class: 'stop__rail' }),
       leg,
       h('span', { class: 'badge' + (i === 0 ? ' badge--start' : i === stops.length - 1 ? ' badge--now' : '') }, String(i + 1)),
       h('div', { class: 'stop__main' },
         h('button', { class: 'stop__open', onclick: () => selectStop(s.id, false) }, h('h3', null, s.name), meta && h('p', { class: 'stop__meta' }, meta)),
-        h('button', { class: 'stop__edit', 'aria-label': `Edit ${s.name}`, onclick: () => editStop(s) }, icon('pencil'))),
-      s.notes && h('p', { class: 'stop__notes' }, s.notes));
+        only && h('button', { class: 'stop__edit', 'aria-label': `Edit ${only.name}`, onclick: () => editStop(only) }, icon('pencil'))),
+      s.notes && h('p', { class: 'stop__notes' }, s.notes),
+      places);
     if (s.photos?.length) {
       const strip = h('div', { class: 'strip' });
       s.photos.forEach((pid, n) => {
@@ -328,7 +390,7 @@ function renderTrip() {
 }
 
 function selectStop(id, fromMap) {
-  const stop = S.trip.stops.find((s) => s.id === id);
+  const stop = S.view.find((s) => s.id === id);
   if (!stop) return;
   S.selected = id;
   document.querySelectorAll('.stop').forEach((el) => el.classList.toggle('stop--sel', el.dataset.id === id));
@@ -348,45 +410,135 @@ function selectStop(id, fromMap) {
   map.focus(stop);
 }
 
+// Road routes for the legs on screen. City-to-city legs are kept on the trip,
+// stop-to-stop legs on the stop they lead to.
 async function ensureRoads() {
-  const trip = S.trip;
+  const trip = S.trip, view = S.view;
   let changed = false;
-  for (let i = 1; i < trip.stops.length; i++) {
-    const a = trip.stops[i - 1], b = trip.stops[i], key = legKey(a, b);
+  for (let i = 1; i < view.length; i++) {
+    const a = view[i - 1], b = view[i], key = legKey(a, b);
     if (b.road?.key === key || noRoad.has(key)) continue;
+    if (haversine(a, b) < 0.3) { noRoad.add(key); continue; } // a short walk, not a drive
     try {
       const road = await fetchRoad(a, b);
-      if (road) { b.road = road; changed = true; } else noRoad.add(key);
+      if (road) {
+        b.road = road;
+        if (b.virtual) (trip.cityRoads ??= {})[key] = road;
+        changed = true;
+      } else noRoad.add(key);
     } catch {
       noRoad.add(key);
     }
-    if (S.trip !== trip) return;
+    if (S.trip !== trip || S.view !== view) break;
   }
   if (!changed) return;
   await store.saveTrip(trip);
-  if (S.trip !== trip) return;
+  if (S.trip !== trip || S.view !== view) return;
   renderTrip();
-  if (S.mode === 'roads' && mapOk && !document.body.classList.contains('is-replaying')) map.setTrip(trip.stops, S.mode);
+  if (S.mode === 'roads' && mapOk && !document.body.classList.contains('is-replaying')) map.setTrip(S.view, S.mode);
+}
+
+// Fills in the city of stops saved before cities were recorded (or added as a
+// bare map pin), so the city view can group them.
+let citiesBusy = false;
+async function ensureCities() {
+  const trip = S.trip;
+  const todo = trip.stops.filter((s) => s.city == null);
+  if (!todo.length || citiesBusy) return;
+  citiesBusy = true;
+  let changed = false;
+  try {
+    for (const s of todo) {
+      const found = await placeAt(s.lat, s.lon).catch(() => null);
+      if (S.trip !== trip) return;
+      if (found?.city) { s.city = found.city; s.country = found.country || s.country || ''; changed = true; }
+    }
+  } finally {
+    citiesBusy = false;
+  }
+  if (!changed) return;
+  await store.saveTrip(trip);
+  if (S.trip !== trip || S.detail !== 'cities') return;
+  renderTrip();
+  if (mapOk && !document.body.classList.contains('is-replaying')) { map.setTrip(S.view, S.mode); map.select(S.selected); }
+  ensureRoads();
+}
+
+function setDetail(detail) {
+  if (S.detail === detail) return;
+  S.detail = detail;
+  localStorage.setItem('waymark.detail', detail);
+  S.selected = null;
+  renderTrip();
+  if (detail === 'cities') ensureCities();
+  if (!mapOk) return;
+  map.setPadding(camPad());
+  map.setTrip(S.view, S.mode);
+  map.fit();
+  ensureRoads();
 }
 
 async function tripChanged({ added = -1 } = {}) {
-  const trip = S.trip, stops = trip.stops;
+  const trip = S.trip;
+  const addedId = added >= 0 ? trip.stops[added]?.id : null;
   renderTrip();
+  const view = S.view;
+  // Which entry on screen is new: the stop itself, or its city if that city is new.
+  let enter = addedId ? view.findIndex((v) => v.id === addedId || v.members?.some((m) => m.id === addedId)) : -1;
+  if (enter >= 0 && view[enter].members?.length > 1) enter = -1;
+  if (S.detail === 'cities') ensureCities();
   if (!mapOk) return;
-  if (!isWide()) sheet.set(stops.length > 1 ? 'peek' : 'half');
+  if (!isWide()) sheet.set(view.length > 1 ? 'peek' : 'half');
   map.setPadding(camPad());
-  map.setTrip(stops, S.mode, { enter: added });
-  const drawNew = added > 0 && added === stops.length - 1;
-  if (drawNew) map.draw(added - 1);
+  map.setTrip(view, S.mode, { enter });
+  const drawNew = enter > 0 && enter === view.length - 1;
+  if (drawNew) map.draw(enter - 1);
   await map.fit();
-  if (drawNew && S.trip === trip) await map.animateLeg(added);
+  if (drawNew && S.trip === trip) await map.animateLeg(enter);
   if (S.trip === trip) ensureRoads();
+}
+
+// ---------- photo import ----------
+
+let photoPick;
+function startImport() {
+  photoPick.value = '';
+  photoPick.click();
+}
+
+async function photosChosen() {
+  const files = [...photoPick.files];
+  const trip = S.trip;
+  if (!files.length || !trip) return;
+  const result = await importPhotos(trip, files);
+  if (!result || S.trip !== trip) return;
+  const stops = trip.stops;
+  for (const [id, photos] of result.attach) {
+    const s = stops.find((x) => x.id === id);
+    if (s) s.photos = [...(s.photos || []), ...photos];
+  }
+  for (const stop of result.stops) stops.splice(slotFor(stops, stop.date, stop.time), 0, stop);
+  trip.photoKeys = [...(trip.photoKeys || []), ...result.keys];
+  await store.saveTrip(trip);
+  store.askToPersist();
+  const added = result.stops.length, photos = result.stops.reduce((n, s) => n + s.photos.length, 0) + [...result.attach.values()].flat().length;
+  toast(added ? `Added ${plural(added, 'stop')} from ${plural(photos, 'photo')}` : `Added ${plural(photos, 'photo')} to your stops`);
+  S.selected = null;
+  tripChanged();
+}
+
+// Where a stop belongs by date, so one added late still lands in the right place.
+function slotFor(stops, date, time) {
+  const when = (s) => `${s.date || ''} ${s.time || ''}`;
+  let i = stops.length;
+  while (i > 0 && date && stops[i - 1].date && when(stops[i - 1]) > `${date} ${time || '99'}`) i--;
+  return i;
 }
 
 // ---------- map buttons ----------
 
 function toggleMode() {
-  const stops = S.trip.stops;
+  const stops = S.view;
   if (S.mode === 'arrows' && !stops.some((_, i) => roadOf(stops, i))) {
     toast('No road route found for these stops');
     return;
@@ -417,7 +569,7 @@ async function showMe() {
 }
 
 async function startReplay() {
-  const stops = S.trip.stops;
+  const stops = S.view;
   document.body.classList.add('is-replaying');
   $('replay').hidden = false;
   map.select(null);
@@ -426,7 +578,7 @@ async function startReplay() {
     $('replay-n').textContent = i + 1;
     $('replay-n').className = 'badge' + (i === 0 ? ' badge--start' : i === stops.length - 1 ? ' badge--now' : '');
     $('replay-name').textContent = stops[i].name;
-    $('replay-meta').textContent = fmtDate(stops[i].date, stops[i].time);
+    $('replay-meta').textContent = viewDate(stops[i]);
   });
   endReplay();
 }
@@ -463,15 +615,98 @@ function pickOnMap() {
 
 // ---------- add / edit a stop ----------
 
+// The time is optional: a new stop starts with today's date and no time.
 function addStop() {
-  const now = today();
-  stopForm({ id: null, place: null, name: '', date: now.date, time: now.time, notes: '', photos: [], removed: [] });
+  stopForm({ id: null, place: null, name: '', date: today().date, time: '', notes: '', photos: [], removed: [] });
+}
+
+// A search box with live results, shared by the stop form and the home picker.
+function searchField({ near, placeholder, onChoose }) {
+  const results = h('ul', { class: 'results' });
+  const input = h('input', {
+    class: 'input', type: 'search', placeholder,
+    autocomplete: 'off', autocorrect: 'off', spellcheck: 'false', enterkeyhint: 'search', 'aria-label': 'Search for a place',
+  });
+  let timer, ctl;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    ctl?.abort();
+    const q = input.value.trim();
+    if (q.length < 2) { results.replaceChildren(); return; }
+    if (!results.querySelector('button')) results.replaceChildren(h('li', { class: 'results__note' }, 'Searching'));
+    timer = setTimeout(() => {
+      ctl = new AbortController();
+      const signal = ctl.signal;
+      const found = [];
+      let pending = 2, failed = 0;
+      // Two searches run side by side. Whatever arrives second is added below
+      // what is already showing, so the list never shifts under a finger.
+      const settle = (list) => {
+        if (signal.aborted) return;
+        pending--;
+        if (!list) failed++;
+        for (const r of list || []) {
+          const twin = found.some((f) => haversine(f, r) < 12 && f.name.slice(0, 4).toLowerCase() === r.name.slice(0, 4).toLowerCase());
+          if (!twin) found.push(r);
+        }
+        if (found.length) {
+          results.replaceChildren(...found.slice(0, 9).map((r) => h('li', null, h('button', { onclick: () => onChoose(r) }, h('strong', null, r.name), h('span', null, r.sub)))));
+        } else if (!pending) {
+          results.replaceChildren(h('li', { class: 'results__note' }, failed === 2
+            ? 'Search is not reachable. Check the connection, or pick the place on the map.'
+            : `No places found for “${q}”. Check the spelling, or pick the place on the map.`));
+        }
+      };
+      searchCities(q, signal).then(settle, () => settle(null));
+      searchPlaces(q, near, signal).then(settle, () => settle(null));
+    }, 260);
+  });
+  return { input, box: h('div', { class: 'searchbox' }, icon('search'), input), results };
+}
+
+// Asks for a home address once; it is remembered on this device.
+function askHome() {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = async (place) => {
+      if (done) return;
+      done = true;
+      if (place) {
+        const home = { name: place.name, sub: place.sub || '', lat: place.lat, lon: place.lon, city: place.city || place.name, country: place.country || '' };
+        localStorage.setItem('waymark.home', JSON.stringify(home));
+        place = home;
+      }
+      await p.close();
+      resolve(place);
+    };
+    const near = S.trip?.stops.length ? S.trip.stops[0] : mapOk ? map.center() : null;
+    const field = searchField({ near, placeholder: 'Search for your address', onChoose: finish });
+    const atHome = async () => {
+      try {
+        toast('Finding where you are');
+        const at = await locate();
+        finish((await placeAt(at.lat, at.lon).catch(() => null)) || (await reverseGeocode(at.lat, at.lon)) || pinned(at.lat, at.lon));
+      } catch {
+        toast('Your location is not available. Allow location access for this site.');
+      }
+    };
+    const p = openPanel(h('div', { style: 'display:contents' },
+      h('div', { class: 'panel__head' },
+        h('button', { class: 'plain', onclick: () => finish(null) }, 'Cancel'),
+        h('h2', null, 'Your home'),
+        h('span', { class: 'panel__spacer' })),
+      h('div', { class: 'panel__scroll' },
+        h('p', { class: 'panel__lead' }, 'Saved on this device, so Home is one tap away whenever you add a stop.'),
+        field.box, field.results,
+        h('div', { class: 'quick quick--one' }, h('button', { onclick: atHome }, icon('locate'), 'I’m at home right now')))), 'form');
+    setTimeout(() => field.input.focus(), 380);
+  });
 }
 
 async function editStop(stop) {
   const photos = await Promise.all((stop.photos || []).map(async (id) => ({ id, url: await store.photoUrl(id) })));
   stopForm({
-    id: stop.id, place: { name: stop.name, sub: stop.sub, lat: stop.lat, lon: stop.lon },
+    id: stop.id, place: { name: stop.name, sub: stop.sub, lat: stop.lat, lon: stop.lon, city: stop.city, country: stop.country },
     name: stop.name, autoName: stop.name, date: stop.date, time: stop.time, notes: stop.notes, photos, removed: [],
   });
 }
@@ -502,54 +737,26 @@ function stopForm(draft, point) {
       return;
     }
 
-    const results = h('ul', { class: 'results' });
-    const input = h('input', {
-      class: 'input', type: 'search', placeholder: isStart ? 'Where are you starting from?' : 'Where have you arrived?',
-      autocomplete: 'off', autocorrect: 'off', spellcheck: 'false', enterkeyhint: 'search', 'aria-label': 'Search for a place',
-    });
-    let timer, ctl;
     const near = stops.length ? stops[stops.length - 1] : mapOk ? map.center() : null;
-    input.addEventListener('input', () => {
-      clearTimeout(timer);
-      ctl?.abort();
-      const q = input.value.trim();
-      if (q.length < 2) { results.replaceChildren(); return; }
-      if (!results.querySelector('button')) results.replaceChildren(h('li', { class: 'results__note' }, 'Searching'));
-      timer = setTimeout(() => {
-        ctl = new AbortController();
-        const signal = ctl.signal;
-        const found = [];
-        let pending = 2, failed = 0;
-        // Two searches run side by side. Whatever arrives second is added below
-        // what is already showing, so the list never shifts under a finger.
-        const settle = (list) => {
-          if (signal.aborted) return;
-          pending--;
-          if (!list) failed++;
-          for (const r of list || []) {
-            const twin = found.some((f) => haversine(f, r) < 12 && f.name.slice(0, 4).toLowerCase() === r.name.slice(0, 4).toLowerCase());
-            if (!twin) found.push(r);
-          }
-          if (found.length) {
-            results.replaceChildren(...found.slice(0, 9).map((r) => h('li', null, h('button', { onclick: () => choose(r) }, h('strong', null, r.name), h('span', null, r.sub)))));
-          } else if (!pending) {
-            results.replaceChildren(h('li', { class: 'results__note' }, failed === 2
-              ? 'Search is not reachable. Check the connection, or pick the place on the map.'
-              : `No places found for “${q}”. Check the spelling, or pick the place on the map.`));
-          }
-        };
-        searchCities(q, signal).then(settle, () => settle(null));
-        searchPlaces(q, near, signal).then(settle, () => settle(null));
-      }, 260);
-    });
+    const field = searchField({ near, placeholder: isStart ? 'Where are you starting from?' : 'Where have you arrived?', onChoose: choose });
+    const home = loadHome();
 
     placeBox.replaceChildren(
-      h('div', { class: 'searchbox' }, icon('search'), input),
-      results,
+      field.box,
+      field.results,
       h('div', { class: 'quick' },
+        h('button', { class: 'quick__home', onclick: goHome },
+          icon('home'),
+          h('span', null, h('strong', null, 'Home'), h('small', null, home ? home.sub || home.name : 'Set your home address once'))),
         h('button', { onclick: here }, icon('locate'), 'My location'),
         h('button', { onclick: pick, disabled: !mapOk }, icon('pin'), 'Pick on map')));
-    if (!draft.id) setTimeout(() => input.focus(), 380);
+    if (!draft.id) setTimeout(() => field.input.focus(), 380);
+  }
+
+  async function goHome() {
+    const home = loadHome() || (await askHome());
+    if (!home) return;
+    choose({ ...home, name: 'Home', sub: [home.name, home.city].filter((x, i, a) => x && a.indexOf(x) === i && x !== 'Home').join(', ') });
   }
 
   function choose(place) {
@@ -617,13 +824,27 @@ function stopForm(draft, point) {
     if (failed) toast(failed === 1 ? 'One photo could not be read' : `${failed} photos could not be read`);
   }
 
+  // Time is optional. An empty box says so, "Now" fills it, × clears it again.
+  const timeInput = h('input', { class: 'input', type: 'time', value: draft.time, 'aria-label': 'Time, optional', oninput: (e) => { draft.time = e.target.value; syncTime(); } });
+  const timeNow = h('button', { class: 'field__act', type: 'button', onclick: () => { draft.time = today().time; timeInput.value = draft.time; syncTime(); } }, 'Now');
+  const timeClear = h('button', { class: 'timebox__clear', type: 'button', 'aria-label': 'Remove the time', onclick: () => { draft.time = ''; timeInput.value = ''; syncTime(); } }, icon('close'));
+  const timeBox = h('div', { class: 'timebox' }, timeInput, h('span', { class: 'timebox__hint', 'aria-hidden': 'true' }, 'No time'), timeClear);
+  function syncTime() {
+    const empty = !draft.time;
+    timeBox.classList.toggle('is-empty', empty);
+    timeNow.hidden = !empty;
+    timeClear.hidden = empty;
+  }
+  syncTime();
+
   rest.append(
     h('label', { class: 'field' }, h('span', { class: 'field__label' }, 'Name'), nameInput),
     h('div', { class: 'fieldrow', style: 'margin-top:18px' },
       h('label', { class: 'field' }, h('span', { class: 'field__label' }, isStart ? 'Date' : 'Arrived on'),
         h('input', { class: 'input', type: 'date', value: draft.date, oninput: (e) => { draft.date = e.target.value; } })),
-      h('label', { class: 'field' }, h('span', { class: 'field__label' }, 'Time'),
-        h('input', { class: 'input', type: 'time', value: draft.time, oninput: (e) => { draft.time = e.target.value; } }))),
+      h('div', { class: 'field' },
+        h('div', { class: 'field__label field__label--row' }, h('span', null, 'Time ', h('em', null, 'optional')), timeNow),
+        timeBox)),
     h('label', { class: 'field' }, h('span', { class: 'field__label' }, 'Notes'),
       h('textarea', { class: 'input', placeholder: 'What happened here?', oninput: (e) => { draft.notes = e.target.value; } }, draft.notes)),
     h('div', { class: 'field' }, h('span', { class: 'field__label' }, 'Photos'), shots));
@@ -646,15 +867,14 @@ function stopForm(draft, point) {
     let added = -1;
     if (!stop) {
       stop = { id: store.uid(), photos: [], road: null };
-      // Slot it in by date, so a stop added late still lands in the right place.
-      const when = (s) => `${s.date || ''} ${s.time || ''}`;
-      added = stops.length;
-      while (added > 0 && draft.date && stops[added - 1].date && when(stops[added - 1]) > `${draft.date} ${draft.time || '99'}`) added--;
+      added = slotFor(stops, draft.date, draft.time);
       stops.splice(added, 0, stop);
     }
     Object.assign(stop, {
       name: draft.name.trim() || draft.place.name, sub: draft.place.sub, lat: draft.place.lat, lon: draft.place.lon,
-      date: draft.date, time: draft.time, notes: draft.notes.trim(),
+      // Unknown city (a bare map pin) stays unset so it can be looked up later.
+      city: draft.place.city || undefined, country: draft.place.country || '',
+      date: draft.date, time: draft.time || '', notes: draft.notes.trim(),
     });
     for (const ph of draft.photos) if (ph.data) await store.putPhoto({ id: ph.id, tripId: trip.id, ...ph.data });
     for (const id of draft.removed) await store.deletePhoto(id);
@@ -732,6 +952,8 @@ function boot() {
   $('trip').inert = true;
 
   $('btn-add').addEventListener('click', addStop);
+  photoPick = h('input', { type: 'file', accept: 'image/*,.heic,.heif,.zip,application/zip', multiple: true, hidden: true, onchange: photosChosen });
+  document.body.append(photoPick);
   $('btn-title').addEventListener('click', () => renameTrip(S.trip));
   $('btn-menu').addEventListener('click', () => tripMenu(S.trip, true));
   $('btn-fit').addEventListener('click', () => { map.setPadding(camPad()); map.select((S.selected = null)); renderTrip(); map.fit(); });

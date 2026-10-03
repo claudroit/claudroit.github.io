@@ -1,8 +1,8 @@
 // Keeps the app itself available without a connection. Map tiles and place
 // search still need the network; trips and photos live in IndexedDB.
 
-const CACHE = 'waymark-v1';
-const SHELL = ['./', 'index.html', 'styles.css', 'js/app.js', 'js/ui.js', 'js/store.js', 'js/services.js', 'js/mapview.js', 'icons/icon.svg'];
+const CACHE = 'waymark-v2';
+const SHELL = ['./', 'index.html', 'styles.css', 'js/app.js', 'js/ui.js', 'js/store.js', 'js/services.js', 'js/mapview.js', 'js/photos.js', 'js/importer.js', 'icons/icon.svg'];
 const LIBS = ['unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', (e) => {

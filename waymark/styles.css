@@ -195,6 +195,8 @@ body.in-trip .home {
   transition: transform 0.3s var(--ease), opacity 0.25s;
 }
 .mk--start { background: var(--sign); border-radius: 9px; }
+.mk--multi { width: auto; min-width: 30px; padding: 2px 8px 0; border-radius: 15px; font-size: 13px; letter-spacing: -0.02em; }
+.mk--start.mk--multi { border-radius: 9px; }
 .mk--now { background: var(--paint); color: var(--ink); box-shadow: 0 0 0 2.5px var(--ink), 0 3px 8px rgba(23, 32, 42, 0.35); }
 .mk--sel { transform: scale(1.28); }
 .mk--hidden { transform: scale(0); opacity: 0; }

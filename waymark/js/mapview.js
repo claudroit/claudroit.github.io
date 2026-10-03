@@ -140,6 +140,10 @@ export class MapView {
       map.once('load', () => { clearTimeout(timer); resolve(); });
     });
 
+    // The map's own labels, so the city view can thin them out.
+    this.baseLabels = map.getStyle().layers.filter((l) => l.type === 'symbol').map((l) => [l.id, map.getLayoutProperty(l.id, 'visibility') || 'visible']);
+    if (this.simple) this.simplify(true);
+
     map.addImage('waymark-head', arrowImage(), { pixelRatio: 2 });
     const empty = { type: 'FeatureCollection', features: [] };
     for (const id of ['legs', 'heads', 'names']) map.addSource(id, { type: 'geojson', data: empty });
@@ -166,6 +170,16 @@ export class MapView {
   }
 
   resize() { this.map?.resize(); }
+
+  // With `on`, only city, town and country names are left on the base map.
+  simplify(on) {
+    this.simple = on;
+    if (!this.baseLabels) return;
+    for (const [id, vis] of this.baseLabels) {
+      const keep = /city|town|country|state|continent|capital/.test(id);
+      this.map.setLayoutProperty(id, 'visibility', on && !keep ? 'none' : vis);
+    }
+  }
   setPadding(pad) { this.pad = pad; }
 
   // Point moves are centred in the area the sheet and buttons leave free. This is
@@ -181,19 +195,34 @@ export class MapView {
     this.mode = mode;
     this.geoms = stops.map((s, i) => (i === 0 ? null : mode === 'roads' && s.road?.coords?.length > 1 ? s.road.coords : arc(stops[i - 1], s)));
 
+    // Entries with the same `spot` (a city visited twice) share one marker that
+    // carries both numbers, so each city appears on the map once.
     this.markers.forEach((m) => m.marker.remove());
-    this.markers = stops.map((s, i) => {
+    const bySpot = new Map();
+    this.markers = [];
+    this.markerOf = stops.map((s, i) => {
+      const known = s.spot != null && bySpot.get(s.spot);
+      if (known) { known.ids.push(s.id); known.nums.push(i); return known; }
+      const m = { id: s.id, ids: [s.id], nums: [i], first: i, stop: s };
+      if (s.spot != null) bySpot.set(s.spot, m);
+      this.markers.push(m);
+      return m;
+    });
+    const last = stops.length - 1;
+    for (const m of this.markers) {
       const dot = document.createElement('div');
-      dot.className = 'mk' + (i === 0 ? ' mk--start' : i === stops.length - 1 ? ' mk--now' : '') + (i === enter ? ' mk--enter' : '');
-      dot.textContent = i + 1;
+      dot.className = 'mk' + (m.nums.includes(0) ? ' mk--start' : m.nums.includes(last) ? ' mk--now' : '')
+        + (m.nums.includes(enter) ? ' mk--enter' : '') + (m.nums.length > 1 ? ' mk--multi' : '');
+      dot.textContent = m.nums.map((n) => n + 1).join('·');
       const wrap = document.createElement('div');
       wrap.className = 'mk-wrap';
       wrap.setAttribute('role', 'button');
-      wrap.setAttribute('aria-label', `Stop ${i + 1}, ${s.name}`);
+      wrap.setAttribute('aria-label', `Stop ${m.nums.map((n) => n + 1).join(' and ')}, ${m.stop.name}`);
       wrap.append(dot);
-      wrap.addEventListener('click', (e) => { e.stopPropagation(); this.onStopTap(s.id); });
-      return { id: s.id, dot, marker: new maplibregl.Marker({ element: wrap }).setLngLat([s.lon, s.lat]).addTo(this.map) };
-    });
+      wrap.addEventListener('click', (e) => { e.stopPropagation(); this.onStopTap(m.id); });
+      m.dot = dot;
+      m.marker = new maplibregl.Marker({ element: wrap }).setLngLat([m.stop.lon, m.stop.lat]).addTo(this.map);
+    }
     this.draw();
   }
 
@@ -217,15 +246,15 @@ export class MapView {
     this.map.getSource('heads').setData({ type: 'FeatureCollection', features: heads });
     this.map.getSource('names').setData({
       type: 'FeatureCollection',
-      features: this.stops.filter((_, i) => i <= shown).map((s) => ({
-        type: 'Feature', properties: { name: s.name }, geometry: { type: 'Point', coordinates: [s.lon, s.lat] },
+      features: this.markers.filter((m) => m.first <= shown).map((m) => ({
+        type: 'Feature', properties: { name: m.stop.name }, geometry: { type: 'Point', coordinates: [m.stop.lon, m.stop.lat] },
       })),
     });
-    this.markers.forEach((m, i) => m.dot.classList.toggle('mk--hidden', i > shown));
+    this.markers.forEach((m) => m.dot.classList.toggle('mk--hidden', m.first > shown));
   }
 
   select(id) {
-    this.markers.forEach((m) => m.dot.classList.toggle('mk--sel', m.id === id));
+    this.markers.forEach((m) => m.dot.classList.toggle('mk--sel', m.ids.includes(id)));
   }
 
   // ---------- camera ----------

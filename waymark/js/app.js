@@ -50,23 +50,29 @@ const cityName = (s) => (s.city || s.name || '').trim();
 const cityKey = (s) => `${cityName(s)}|${s.country || ''}`.toLowerCase();
 const countryOf = (s) => s.country || (s.sub || '').split(', ').pop() || '';
 
-// One entry per city visit: consecutive stops in the same city are merged into a
-// single point at their centre. A city visited twice appears twice, in order.
+// One entry per city visit: consecutive stops in the same city are merged. Every
+// visit to a city sits at the same point (the centre of all its stops) and shares
+// one marker on the map, so each city shows once; the journal lists each visit.
 function buildView() {
   const trip = S.trip, stops = trip.stops;
   if (S.detail !== 'cities') return (S.view = stops);
-  const groups = [];
+  const groups = [], centre = new Map();
   for (const s of stops) {
+    const key = cityKey(s);
+    const c = centre.get(key) || { lat: 0, lon: 0, n: 0 };
+    c.lat += s.lat; c.lon += s.lon; c.n++;
+    centre.set(key, c);
     const g = groups[groups.length - 1];
-    if (g && g.key === cityKey(s)) g.members.push(s);
-    else groups.push({ key: cityKey(s), members: [s] });
+    if (g && g.key === key) g.members.push(s);
+    else groups.push({ key, members: [s] });
   }
-  S.view = groups.map(({ members: m }) => {
+  S.view = groups.map(({ key, members: m }) => {
     const dates = m.map((x) => x.date).filter(Boolean).sort();
+    const c = centre.get(key);
     return {
-      id: 'city:' + m[0].id, virtual: true, members: m,
+      id: 'city:' + m[0].id, virtual: true, members: m, spot: key,
       name: cityName(m[0]), sub: countryOf(m[0]),
-      lat: m.reduce((a, x) => a + x.lat, 0) / m.length, lon: m.reduce((a, x) => a + x.lon, 0) / m.length,
+      lat: +(c.lat / c.n).toFixed(6), lon: +(c.lon / c.n).toFixed(6),
       date: dates[0] || '', dateEnd: dates[dates.length - 1] || '', time: m.length === 1 ? m[0].time : '',
       notes: m.length === 1 ? m[0].notes : '', photos: m.flatMap((x) => x.photos || []), road: null,
     };
@@ -194,6 +200,7 @@ function tripMenu(trip, inside) {
   menu(trip.name, [
     { icon: 'pencil', label: 'Rename trip', run: () => renameTrip(trip) },
     inside && { icon: 'photos', label: 'Import photos', run: startImport },
+    inside && trip.stops.some((s) => s.source === 'photos' && !s.nameSet) && { icon: 'pin', label: 'Find landmark names for photo places', run: renamePhotoPlaces },
     inside && { icon: 'ruler', label: S.units === 'mi' ? 'Show distances in kilometres' : 'Show distances in miles', run: toggleUnits },
     inside && { icon: 'home', label: loadHome() ? 'Change home address' : 'Set home address', run: () => askHome().then((p) => p && toast('Home saved')) },
     { icon: 'save', label: 'Save a backup file', run: () => exportTrip(trip) },
@@ -257,6 +264,7 @@ async function importTrip(file) {
       stops: data.trip.stops.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lon)).map((s) => ({
         id: store.uid(), name: String(s.name || 'Stop'), sub: String(s.sub || ''), lat: s.lat, lon: s.lon,
         city: typeof s.city === 'string' ? s.city : undefined, country: String(s.country || ''),
+        source: s.source === 'photos' ? 'photos' : undefined, nameSet: s.nameSet === true || undefined,
         date: /^\d{4}-\d\d-\d\d$/.test(s.date) ? s.date : '', time: /^\d\d:\d\d$/.test(s.time) ? s.time : '',
         notes: String(s.notes || ''), photos: (s.photos || []).map((id) => ids.get(id)).filter(Boolean), road: s.road || null,
       })),
@@ -304,6 +312,7 @@ async function openTrip(id) {
   if (S.trip !== trip) return;
   map.resize();
   map.setPadding(camPad());
+  map.simplify(S.detail === 'cities');
   map.setTrip(S.view, S.mode);
   if (trip.stops.length) map.fit({ duration: 0 });
   if (S.detail === 'cities') ensureCities();
@@ -472,10 +481,35 @@ function setDetail(detail) {
   renderTrip();
   if (detail === 'cities') ensureCities();
   if (!mapOk) return;
+  map.simplify(detail === 'cities');
   map.setPadding(camPad());
   map.setTrip(S.view, S.mode);
   map.fit();
   ensureRoads();
+}
+
+// Looks up better names for places that came from photos (landmarks rather than
+// street addresses). Names typed by hand are left alone.
+async function renamePhotoPlaces() {
+  const trip = S.trip;
+  const todo = trip.stops.filter((s) => s.source === 'photos' && !s.nameSet);
+  if (!todo.length) { toast('No places from photos to rename'); return; }
+  toast('Looking for landmarks');
+  let renamed = 0;
+  for (const s of todo) {
+    const found = await placeAt(s.lat, s.lon, { landmarks: true }).catch(() => null);
+    if (S.trip !== trip) return;
+    if (found?.name && found.name !== s.name) {
+      s.name = found.name;
+      s.sub = found.sub;
+      if (found.city) { s.city = found.city; s.country = found.country || s.country || ''; }
+      renamed++;
+    }
+  }
+  await store.saveTrip(trip);
+  if (S.trip !== trip) return;
+  toast(renamed ? `Renamed ${plural(renamed, 'place')}` : 'The names are already the best ones found');
+  tripChanged();
 }
 
 async function tripChanged({ added = -1 } = {}) {
@@ -870,8 +904,10 @@ function stopForm(draft, point) {
       added = slotFor(stops, draft.date, draft.time);
       stops.splice(added, 0, stop);
     }
+    const name = draft.name.trim() || draft.place.name;
+    if (draft.id && name !== stop.name) stop.nameSet = true;
     Object.assign(stop, {
-      name: draft.name.trim() || draft.place.name, sub: draft.place.sub, lat: draft.place.lat, lon: draft.place.lon,
+      name, sub: draft.place.sub, lat: draft.place.lat, lon: draft.place.lon,
       // Unknown city (a bare map pin) stays unset so it can be looked up later.
       city: draft.place.city || undefined, country: draft.place.country || '',
       date: draft.date, time: draft.time || '', notes: draft.notes.trim(),

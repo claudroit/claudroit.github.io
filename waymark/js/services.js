@@ -87,16 +87,75 @@ export async function reverseGeocode(lat, lon) {
   }
 }
 
-// The most specific name for a point (a landmark, an address, a district) along
-// with the city it is in. Used for photos and for a home address.
-export async function placeAt(lat, lon, signal) {
-  const r = await fetch(`${PHOTON}/reverse?lat=${lat}&lon=${lon}&lang=${lang}&limit=1`, { signal });
+// Kinds of map features worth naming a place after. "Strong" ones are sights in
+// their own right; "soft" ones are good names when there is nothing better.
+const STRONG = {
+  tourism: /^(attraction|museum|viewpoint|zoo|theme_park|aquarium|gallery)$/,
+  historic: /^(?!yes$|boundary_stone$|milestone$)/, // any historic feature with a name
+  man_made: /^(lighthouse|tower|observatory|obelisk|windmill)$/,
+  natural: /^(peak|volcano|waterfall|glacier|cave_entrance|arch|rock|cliff)$/,
+  waterway: /^waterfall$/,
+  amenity: /^(place_of_worship|townhall|monastery)$/,
+  building: /^(cathedral|church|chapel|castle|palace|mosque|temple|synagogue|monastery)$/,
+  leisure: /^(nature_reserve|stadium)$/,
+  boundary: /^national_park$/,
+};
+const SOFT = {
+  leisure: /^(park|garden|marina|beach_resort|water_park)$/,
+  place: /^(square|island|islet)$/,
+  man_made: /^(bridge|pier)$/,
+  natural: /^(beach|bay|cape|spring|saddle|water)$/,
+  amenity: /^(theatre|fountain|arts_centre|marketplace|university)$/,
+  tourism: /^(artwork|camp_site|alpine_hut|caravan_site|picnic_site)$/,
+  railway: /^(station)$/,
+  aeroway: /^(aerodrome)$/,
+};
+const kindOf = (p) => (STRONG[p.osm_key]?.test(p.osm_value) ? 2 : SOFT[p.osm_key]?.test(p.osm_value) ? 1 : 0);
+
+// Wikipedia knows which nearby places are notable. Skips the article about the
+// town itself and other things that are areas rather than sights.
+async function notableNear(lat, lon, city, signal) {
+  const u = `https://${lang}.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}%7C${lon}`
+    + '&gsradius=250&gslimit=12&gsprop=type&format=json&origin=*';
+  const r = await fetch(u, { signal });
+  if (!r.ok) return null;
+  const skip = /^(city|adm\w*|country|isle|river|waterbody|event|forest)$/;
+  const plain = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const town = plain(city || '');
+  const hit = ((await r.json()).query?.geosearch || []).find((g) =>
+    !skip.test(g.type || '') && !/^(list|liste) /i.test(g.title) && plain(g.title.replace(/\s*\(.*\)$/, '')) !== town);
+  return hit ? hit.title.replace(/\s*\([^)]*\)$/, '') : null;
+}
+
+// The name for a point along with the city it is in. With `landmarks`, a sight
+// nearby (from the map, then Wikipedia) is preferred over the street address,
+// and the neighbourhood is used when there is no sight. Without it the nearest
+// named thing or address is used, which is right for a home address.
+export async function placeAt(lat, lon, { landmarks = false, signal } = {}) {
+  const q = landmarks ? '&limit=20&radius=0.25' : '&limit=1';
+  const r = await fetch(`${PHOTON}/reverse?lat=${lat}&lon=${lon}&lang=${lang}${q}`, { signal });
   if (!r.ok) throw new Error('lookup failed');
-  const p = (await r.json()).features[0]?.properties;
+  const feats = (await r.json()).features || [];
+  const p = feats[0]?.properties;
   if (!p) return null;
   const city = cityOf(p);
   const street = [p.street, p.housenumber].filter(Boolean).join(' ');
-  const name = (p.name && p.name !== city ? p.name : '') || street || p.district || p.locality || city || p.state || p.country || '';
+  let name = '';
+
+  if (landmarks) {
+    const near = feats
+      .map((f) => ({ p: f.properties || {}, km: haversine({ lat, lon }, { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] }) }))
+      .filter((x) => x.p.name && x.p.name !== city && x.km < 0.22)
+      .map((x) => ({ ...x, kind: kindOf(x.p) }));
+    const best = (k) => near.filter((x) => x.kind === k).sort((a, b) => a.km - b.km)[0]?.p.name;
+    name = best(2)
+      || (await notableNear(lat, lon, city, signal).catch(() => null))
+      || best(1)
+      || p.district || p.locality || p.street || city;
+  } else {
+    name = (p.name && p.name !== city ? p.name : '') || street || p.district || p.locality || city;
+  }
+  name ||= p.state || p.country || '';
   if (!name) return null;
   const sub = [city, p.country].filter((x, i, a) => x && x !== name && a.indexOf(x) === i).join(', ');
   return { name, sub, lat, lon, city, country: p.country || '' };

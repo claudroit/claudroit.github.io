@@ -129,7 +129,7 @@ export function importPhotos(trip, files) {
       progress('Finding the places', 0, places.length, 'places');
       await pool(places, 2, async (pl) => {
         const k = pl.lat.toFixed(3) + ',' + pl.lon.toFixed(3);
-        if (!cache.has(k)) cache.set(k, placeAt(pl.lat, pl.lon).catch(() => null));
+        if (!cache.has(k)) cache.set(k, placeAt(pl.lat, pl.lon, { landmarks: true }).catch(() => null));
         const found = await cache.get(k);
         pl.name = found?.name || `Near ${pl.lat.toFixed(3)}, ${pl.lon.toFixed(3)}`;
         pl.city = found?.city || '';

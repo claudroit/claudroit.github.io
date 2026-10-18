@@ -21,6 +21,17 @@
 <section id="home" class="screen" hidden>
   <header class="top"><h1>Französisch</h1><span class="sub">TSW Semester 1</span></header>
   <div id="decks"></div>
+  <h2 class="group-title">Grammatik</h2>
+  <div id="grammar-rows" class="grammar-rows">
+    <button id="open-verbs" class="deck">
+      <span class="deck-name">100 Verben<small>Präsens, alle sechs Formen</small></span>
+      <span class="deck-counts" id="verb-counts"></span>
+    </button>
+    <button id="open-adj" class="deck">
+      <span class="deck-name">Adjektiv vor oder nach dem Nomen<small>6 Adjektive, je zwei Bedeutungen</small></span>
+      <span class="deck-counts" id="adj-counts"></span>
+    </button>
+  </div>
   <div class="settings">
     <div class="setting">
       <span>Richtung</span>
@@ -62,6 +73,95 @@
   </footer>
 </section>
 
+<section id="verbs" class="screen" hidden>
+  <header class="bar">
+    <button class="back-home link">‹ Decks</button>
+    <span>100 Verben</span>
+    <span></span>
+  </header>
+  <div class="top"><h1>100 Verben</h1><span class="sub">Präsens: je, tu, il, nous, vous, ils</span></div>
+  <div id="verb-summary" class="verb-summary"></div>
+  <ol class="steps-list">
+    <li class="step">
+      <div class="step-text"><strong>Erster Durchgang</strong><span>Alle 100 Verben einmal. Was du perfekt konjugierst, kommt zu „Kann ich“, der Rest zu „Lernen“.</span></div>
+      <button id="verb-first" class="step-go"></button>
+    </li>
+    <li class="step">
+      <div class="step-text"><strong>Üben</strong><span>Nur die Verben unter „Lernen“. Ein Verb sitzt, wenn du es zweimal perfekt konjugiert hast.</span></div>
+      <button id="verb-practice" class="step-go"></button>
+    </li>
+    <li class="step">
+      <div class="step-text"><strong>Abschlusstest</strong><span>Alle 100 Verben gemischt, auch die, die du schon konntest. Fehler kommen zurück zu „Lernen“.</span><span id="verb-tests" class="step-note"></span></div>
+      <button id="verb-test" class="step-go"></button>
+    </li>
+  </ol>
+  <details class="verb-list"><summary>Alle Verben</summary><div id="verb-list"></div></details>
+</section>
+
+<section id="conj" class="screen" hidden>
+  <header class="bar">
+    <button id="conj-back" class="link">‹ Verben</button>
+    <span id="conj-mode"></span>
+    <span id="conj-progress" class="counts"></span>
+  </header>
+  <main class="card conj-card">
+    <div id="conj-meta" class="meta"></div>
+    <div id="conj-inf" class="side"></div>
+    <div id="conj-de" class="conj-de"></div>
+    <form id="conj-form" class="conj-form" autocomplete="off"></form>
+    <div class="accents" aria-label="Sonderzeichen"><button type="button" tabindex="-1">é</button><button type="button" tabindex="-1">è</button><button type="button" tabindex="-1">ê</button><button type="button" tabindex="-1">ë</button><button type="button" tabindex="-1">à</button><button type="button" tabindex="-1">â</button><button type="button" tabindex="-1">î</button><button type="button" tabindex="-1">ï</button><button type="button" tabindex="-1">ô</button><button type="button" tabindex="-1">û</button><button type="button" tabindex="-1">ù</button><button type="button" tabindex="-1">ü</button><button type="button" tabindex="-1">ç</button><button type="button" tabindex="-1">œ</button></div>
+    <p id="conj-verdict" class="verdict conj-verdict" aria-live="polite"></p>
+  </main>
+  <footer class="actions">
+    <button id="conj-go" class="primary">Prüfen</button>
+  </footer>
+</section>
+
+<section id="conj-done" class="screen" hidden>
+  <header class="bar">
+    <button class="link" data-to-verbs>‹ Verben</button>
+    <span></span><span></span>
+  </header>
+  <main class="center">
+    <h2 id="conj-done-title"></h2>
+    <p id="conj-done-text" class="quiet"></p>
+    <div id="conj-done-list" class="chips"></div>
+    <button id="conj-done-next" class="primary wide"></button>
+  </main>
+</section>
+
+<section id="adj" class="screen" hidden>
+  <header class="bar">
+    <button class="back-home link">‹ Decks</button>
+    <span>Adjektive</span>
+    <span id="adj-progress" class="counts"></span>
+  </header>
+  <div id="adj-intro">
+    <div class="top"><h1>Vor oder nach dem Nomen</h1><span class="sub">Diese Adjektive ändern ihre Bedeutung je nach Stellung.</span></div>
+    <div class="adj-table" id="adj-table"></div>
+    <button id="adj-start" class="primary wide">Abfrage starten</button>
+    <p id="adj-best" class="quiet small center-text"></p>
+  </div>
+  <main id="adj-quiz" class="card" hidden>
+    <div id="adj-ask" class="meta"></div>
+    <div id="adj-prompt" class="side"></div>
+    <form id="adj-form" class="type-form" autocomplete="off">
+      <label for="adj-input" class="visually-hidden">Auf Französisch</label>
+      <input id="adj-input" class="fr-input" lang="fr" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Auf Französisch …">
+      <div class="accents" aria-label="Sonderzeichen"><button type="button" tabindex="-1">é</button><button type="button" tabindex="-1">è</button><button type="button" tabindex="-1">ê</button><button type="button" tabindex="-1">ë</button><button type="button" tabindex="-1">à</button><button type="button" tabindex="-1">â</button><button type="button" tabindex="-1">î</button><button type="button" tabindex="-1">ï</button><button type="button" tabindex="-1">ô</button><button type="button" tabindex="-1">û</button><button type="button" tabindex="-1">ù</button><button type="button" tabindex="-1">ü</button><button type="button" tabindex="-1">ç</button><button type="button" tabindex="-1">œ</button></div>
+    </form>
+    <div id="adj-choices" class="adj-choices"></div>
+    <div id="adj-result" class="type-result" hidden>
+      <p id="adj-verdict" class="verdict"></p>
+      <p id="adj-answer" class="adj-answer"></p>
+      <p id="adj-rule" class="adj-rule"></p>
+    </div>
+  </main>
+  <footer id="adj-foot" class="actions" hidden>
+    <button id="adj-go" class="primary">Prüfen</button>
+  </footer>
+</section>
+
 <section id="study" class="screen" hidden>
   <header class="bar">
     <button class="back-home link">‹ Decks</button>
@@ -73,7 +173,7 @@
     <div id="front" class="side"></div>
     <form id="type-form" class="type-form" autocomplete="off" hidden>
       <label for="type-input" class="visually-hidden">Antwort auf Französisch</label>
-      <input id="type-input" lang="fr" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Auf Französisch …">
+      <input id="type-input" class="fr-input" lang="fr" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Auf Französisch …">
       <div class="accents" aria-label="Sonderzeichen"><button type="button" tabindex="-1">é</button><button type="button" tabindex="-1">è</button><button type="button" tabindex="-1">ê</button><button type="button" tabindex="-1">ë</button><button type="button" tabindex="-1">à</button><button type="button" tabindex="-1">â</button><button type="button" tabindex="-1">î</button><button type="button" tabindex="-1">ï</button><button type="button" tabindex="-1">ô</button><button type="button" tabindex="-1">û</button><button type="button" tabindex="-1">ù</button><button type="button" tabindex="-1">ü</button><button type="button" tabindex="-1">ç</button><button type="button" tabindex="-1">œ</button></div>
     </form>
     <div id="type-result" class="type-result" hidden>

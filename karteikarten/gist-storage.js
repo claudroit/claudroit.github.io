@@ -1,10 +1,11 @@
 // GitHub Pages build only: vocabulary and progress live in a secret gist of the user's,
 // read and written with a token they paste once per device. The public site holds no vocabulary.
-// Gist files: karteikarten-deck.json ({notes, ranges}) and karteikarten-progress.json (the app state).
+// Gist files: karteikarten-deck.json ({notes, ranges}), karteikarten-grammatik.json ({verbs, adjectives})
+// and karteikarten-progress.json (the app state).
 // Each device keeps a full copy in localStorage, so it works offline and syncs when it can.
 
 window.KK_STORAGE = (() => {
-  const DECK = 'karteikarten-deck.json', PROGRESS = 'karteikarten-progress.json';
+  const DECK = 'karteikarten-deck.json', PROGRESS = 'karteikarten-progress.json', GRAMMAR = 'karteikarten-grammatik.json';
   const API = 'https://api.github.com';
   const ls = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -41,7 +42,7 @@ window.KK_STORAGE = (() => {
   }
 
   // ---------- merging two copies ----------
-  const newer = (a, b) => ((a?.m || 0) >= (b?.m || 0) ? a : b);
+  const newer = (a, b) => (!a ? b : !b ? a : (a.m || 0) >= (b.m || 0) ? a : b);
   function merge(a, b) {
     if (!b) return a;
     if (!a) return b;
@@ -61,9 +62,11 @@ window.KK_STORAGE = (() => {
       ...b, ...a, cards, newDone: nd,
       settings: { ...settingsFrom.settings }, settingsM: settingsFrom.settingsM || 0,
       game: { scores: scores.slice(0, 10), runsBy, runsBefore, runs: Object.values(runsBy).reduce((x, y) => x + y, 0) + runsBefore },
+      // the verb and adjective progress: whichever device changed it last
+      verbs: newer(a.verbs, b.verbs), adj: newer(a.adj, b.adj),
     };
   }
-  const pick = st => ({ cards: st.cards, newDone: st.newDone, settings: st.settings, settingsM: st.settingsM || 0, game: st.game });
+  const pick = st => ({ cards: st.cards, newDone: st.newDone, settings: st.settings, settingsM: st.settingsM || 0, game: st.game, verbs: st.verbs, adj: st.adj });
 
   // ---------- syncing ----------
   function status(text) { const el = document.getElementById('sync-status'); if (el) el.textContent = text; }
@@ -190,9 +193,11 @@ window.KK_STORAGE = (() => {
     const cached = ls.get('kk-deck');
     try {
       const { body } = await gh(`/gists/${gistId}`);
-      const text = await fileText(body.files[DECK]);
-      ls.set('kk-deck', text);
-      return JSON.parse(text);
+      const deck = JSON.parse(await fileText(body.files[DECK]));
+      // the verbs and adjectives were added later as their own file
+      if (!deck.grammar && body.files[GRAMMAR]) deck.grammar = JSON.parse(await fileText(body.files[GRAMMAR]));
+      ls.set('kk-deck', JSON.stringify(deck));
+      return deck;
     } catch (e) {
       if (cached) return JSON.parse(cached);        // offline: use the copy from last time
       throw e;

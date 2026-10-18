@@ -1,6 +1,7 @@
 import { answer, untilLabel, fresh, dayOf, AGAIN, HARD, GOOD, EASY } from './srs.js';
 import { createRing } from './ring.js';
 import { check, answerText } from './typing.js';
+import { initGrammar } from './grammar.js';
 
 const $ = sel => document.querySelector(sel);
 const clock = { offset: 0 };                       // tests shift time with this
@@ -39,8 +40,9 @@ const storage = window.KK_STORAGE || serverStorage;
 function setOffline(on) { $('#offline').hidden = !on; }
 
 async function load() {
-  const { notes: n, ranges: r, saved } = await storage.load();
+  const { notes: n, ranges: r, grammar: deckGrammar, saved } = await storage.load();
   notes = n; ranges = r;
+  grammar.setData(deckGrammar);
   cards = notes.flatMap(n => [{ id: n.id + ':f', note: n, dir: 'de' }, { id: n.id + ':r', note: n, dir: 'fr' }]);
   if (saved && saved.cards) state = { ...state, ...saved, settings: { ...state.settings, ...saved.settings }, game: { ...state.game, ...saved.game } };
   if (state.game.runs && !state.game.runsBy) state.game.runsBefore = state.game.runs;   // counted before rounds were per device
@@ -55,6 +57,7 @@ function remoteChanged() {
   if (!$('#home').hidden) home();
   else if (!$('#study').hidden || !$('#wait').hidden) header();
   else if (!$('#game').hidden) renderScores();
+  else grammar.refresh();
 }
 
 // ---------- decks and queue ----------
@@ -113,7 +116,9 @@ const ring = createRing($('#ring'), {
 let wait = null;
 
 function show(id) {
+  const was = [...document.querySelectorAll('.screen')].find(el => !el.hidden)?.id;
   for (const el of document.querySelectorAll('.screen')) el.hidden = el.id !== id;
+  if (was !== id) scrollTo(0, 0);
   if (id !== 'wait') ring.stop();
   if (id !== 'game') gameRing.stop();
 }
@@ -131,12 +136,13 @@ function home() {
         <span title="Fällig">${c.faellig}<small>fällig</small></span>
       </span></button>`;
   }).join('');
-  for (const b of document.querySelectorAll('.deck')) b.onclick = () => { deck = DECKS.find(d => d.key === b.dataset.key); start(); };
+  for (const b of document.querySelectorAll('#decks .deck')) b.onclick = () => { deck = DECKS.find(d => d.key === b.dataset.key); start(); };
   for (const b of document.querySelectorAll('#dir button')) b.setAttribute('aria-pressed', b.dataset.dir === state.settings.dir);
   for (const b of document.querySelectorAll('#typing button')) b.setAttribute('aria-pressed', (b.dataset.typing === 'on') === (state.settings.typeDE !== false));
   $('#new-per-day').textContent = state.settings.newPerDay;
   const best = state.game.scores[0]?.s;
   $('#game-best').textContent = best ? `Bestwert ${best}` : '';
+  grammar.renderHome();
   show('home');
 }
 
@@ -320,6 +326,9 @@ function openGame() {
   gameRing.start();
 }
 
+// ---------- grammar modes ----------
+const grammar = initGrammar({ $, getState: () => state, save: () => save(), show, home });
+
 // ---------- speech ----------
 function speakFrench() {
   if (!current || !('speechSynthesis' in window)) return;
@@ -334,11 +343,13 @@ function speakFrench() {
 $('#reveal').onclick = reveal;
 $('#type-form').onsubmit = e => { e.preventDefault(); reveal(); };
 // accent buttons type at the cursor without taking the focus away
+let lastField = null;
+addEventListener('focusin', e => { if (e.target.matches?.('.fr-input')) lastField = e.target; });
 for (const b of document.querySelectorAll('.accents button')) {
   b.onpointerdown = e => e.preventDefault();
   b.onclick = () => {
-    const input = $('#type-input');
-    if (input.readOnly) return;
+    const input = lastField;
+    if (!input || input.readOnly || !input.isConnected) return;
     const { selectionStart: a, selectionEnd: z, value } = input;
     input.value = value.slice(0, a ?? value.length) + b.textContent + value.slice(z ?? value.length);
     const pos = (a ?? value.length) + b.textContent.length;

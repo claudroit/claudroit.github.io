@@ -4,6 +4,8 @@
 // Verbs: a first pass over all 100 sorts them into "kann ich" (all six forms right) and "lernen".
 // Practice only asks the "lernen" ones; a verb is learned after two perfect rounds.
 // The final test asks all 100 again, shuffled; mistakes go back to "lernen".
+// The same three runs exist twice, as two tracks with their own progress: conjugating
+// (all six forms) and translating (German meaning → French infinitive).
 import { check } from './typing.js';
 
 export function initGrammar({ $, getState, save, show, home }) {
@@ -16,11 +18,17 @@ export function initGrammar({ $, getState, save, show, home }) {
   function V() {
     const st = getState();
     st.verbs ||= { s: {}, first: { i: 0, done: false }, run: null, tests: [], m: 0 };
-    return st.verbs;
+    const v = st.verbs;
+    v.t ||= {}; v.tfirst ||= { i: 0, done: false }; v.ttests ||= []; if (v.trun === undefined) v.trun = null;
+    return v;
   }
+  // which track the runs work on: conjugating (s, first, run, tests) or translating (t, tfirst, trun, ttests)
+  let track = 'conj';
+  const KEYS = { conj: { s: 's', first: 'first', run: 'run', tests: 'tests' }, trans: { s: 't', first: 'tfirst', run: 'trun', tests: 'ttests' } };
+  const T = () => { const v = V(), k = KEYS[track]; return { s: v[k.s], get first() { return v[k.first]; }, set first(x) { v[k.first] = x; }, get run() { return v[k.run]; }, set run(x) { v[k.run] = x; }, get tests() { return v[k.tests]; }, set tests(x) { v[k.tests] = x; } }; };
   const touch = () => { V().m = Date.now(); save(); };
-  function verbCounts() {
-    const s = V().s;
+  function verbCounts(which = track) {
+    const s = V()[KEYS[which].s];
     let kann = 0, lernen = 0;
     for (const v of data.verbs) { const e = s[v.inf]; if (e?.k) kann++; else if (e) lernen++; }
     return { kann, lernen, offen: data.verbs.length - kann - lernen };
@@ -45,13 +53,19 @@ export function initGrammar({ $, getState, save, show, home }) {
     const k = session.kind;
     $('#conj-mode').textContent = k === 'first' ? 'Erster Durchgang' : k === 'practice' ? 'Üben' : 'Abschlusstest';
     $('#conj-progress').textContent = k === 'practice' ? `noch ${session.queue.length - session.i}` : `${session.i + 1}/${session.total}`;
-    $('#conj-meta').textContent = `Nr. ${v.n} · ${v.group}`;
-    $('#conj-inf').textContent = v.inf;
-    $('#conj-de').textContent = v.de;
+    $('#conj-meta').textContent = track === 'conj' ? `Nr. ${v.n} · ${v.group}` : `Nr. ${v.n} · auf Französisch?`;
+    $('#conj-inf').textContent = track === 'conj' ? v.inf : v.de;
+    $('#conj-de').textContent = track === 'conj' ? v.de : '';
     $('#conj-verdict').textContent = '';
     $('#conj-verdict').dataset.result = '';
     const form = $('#conj-form');
-    form.innerHTML = v.forms.map((f, p) => f ? `
+    if (track === 'trans') form.innerHTML = `
+      <label class="conj-row trans-row" data-p="inf">
+        <span class="conj-pron">Infinitiv</span>
+        <input class="fr-input conj-input" data-p="inf" lang="fr" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+        <span class="conj-fix" aria-live="polite"></span>
+      </label>`;
+    else form.innerHTML = v.forms.map((f, p) => f ? `
       <label class="conj-row" data-p="${p}">
         <span class="conj-pron">${label(v, p)}</span>
         <input class="fr-input conj-input" data-p="${p}" lang="fr" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
@@ -69,6 +83,16 @@ export function initGrammar({ $, getState, save, show, home }) {
     checked = true;
     let right = 0, total = 0;
     for (const input of $('#conj-form').querySelectorAll('input')) {
+      if (input.dataset.p === 'inf') {
+        // translating: the French infinitive, accents and "se" included
+        total++;
+        const r = check(`<b>${verb.inf}</b>`, input.value);
+        const row = input.closest('.conj-row');
+        row.dataset.result = r.result; input.readOnly = true;
+        const fix = row.querySelector('.conj-fix');
+        if (r.result === 'right') { right++; fix.textContent = '✓'; } else fix.textContent = verb.inf;
+        continue;
+      }
       const p = Number(input.dataset.p), alts = verb.forms[p];
       total++;
       // the pronoun is already shown; take it off if it was typed anyway
@@ -84,14 +108,14 @@ export function initGrammar({ $, getState, save, show, home }) {
     document.activeElement?.blur?.();
     const perfect = right === total;
     $('#conj-verdict').dataset.result = perfect ? 'right' : 'wrong';
-    $('#conj-verdict').textContent = perfect ? 'Perfekt' : `${right} von ${total} richtig`;
+    $('#conj-verdict').textContent = track === 'trans' ? (perfect ? 'Richtig' : 'Nicht ganz') : perfect ? 'Perfekt' : `${right} von ${total} richtig`;
     $('#conj-go').textContent = 'Weiter';
     record(perfect);
   }
 
   // ---------- the three runs ----------
   function record(perfect) {
-    const st = V(), s = st.s, inf = verb.inf;
+    const st = T(), s = st.s, inf = verb.inf;
     if (session.kind === 'first') {
       s[inf] = perfect ? { k: 1 } : { k: 0, st: 0 };
       st.first.i = session.i + 1;
@@ -123,11 +147,11 @@ export function initGrammar({ $, getState, save, show, home }) {
   }
 
   function finish() {
-    const st = V(), c = verbCounts();
+    const st = T(), c = verbCounts();
     const list = $('#conj-done-list'), next = $('#conj-done-next');
     list.innerHTML = '';
     if (session.kind === 'first') {
-      $('#conj-done-title').textContent = 'Erster Durchgang fertig';
+      $('#conj-done-title').textContent = track === 'conj' ? 'Erster Durchgang fertig' : 'Übersetzen: erster Durchgang fertig';
       $('#conj-done-text').textContent = `${c.kann} Verben kannst du schon perfekt, ${c.lernen} übst du jetzt.`;
       next.textContent = c.lernen ? `${c.lernen} Verben üben` : 'Zum Abschlusstest';
       next.onclick = c.lernen ? startPractice : startTest;
@@ -153,20 +177,20 @@ export function initGrammar({ $, getState, save, show, home }) {
   }
 
   function startFirst() {
-    const st = V();
+    const st = T();
     if (st.first.done) { st.first = { i: 0, done: false }; for (const v of data.verbs) delete st.s[v.inf]; touch(); }
     session = { kind: 'first', queue: data.verbs.map(v => v.inf), i: st.first.i, total: data.verbs.length };
     askVerb(data.verbs[session.i]);
   }
   function startPractice() {
-    const s = V().s;
+    const s = T().s;
     const queue = shuffle(data.verbs.filter(v => s[v.inf] && !s[v.inf].k).map(v => v.inf));
     if (!queue.length) return openVerbs();
     session = { kind: 'practice', queue, i: 0, total: queue.length };
     askVerb(data.verbs.find(v => v.inf === queue[0]));
   }
   function startTest() {
-    const st = V();
+    const st = T();
     if (!st.run) { st.run = { order: shuffle(data.verbs.map(v => v.inf)), i: 0, ok: 0, wrong: [] }; touch(); }
     session = { kind: 'test', queue: st.run.order, i: st.run.i, total: st.run.order.length };
     if (session.i >= session.queue.length) return finish();
@@ -175,8 +199,20 @@ export function initGrammar({ $, getState, save, show, home }) {
 
   // ---------- overview ----------
   const dateFmt = new Intl.DateTimeFormat('de-CH', { day: 'numeric', month: 'numeric' });
+  const STEPS = {
+    conj: ['Alle 100 Verben einmal, alle sechs Formen. Was du perfekt konjugierst, kommt zu „Kann ich“, der Rest zu „Lernen“.',
+      'Nur die Verben unter „Lernen“. Ein Verb sitzt, wenn du es zweimal perfekt konjugiert hast.',
+      'Alle 100 Verben gemischt, auch die, die du schon konntest. Fehler kommen zurück zu „Lernen“.'],
+    trans: ['Alle 100 Verben einmal: Du siehst die deutsche Bedeutung und schreibst den Infinitiv auf Französisch.',
+      'Nur die Verben unter „Lernen“. Ein Verb sitzt, wenn du es zweimal richtig geschrieben hast.',
+      'Alle 100 Bedeutungen gemischt. Fehler kommen zurück zu „Lernen“.'],
+  };
   function openVerbs() {
-    const st = V(), c = verbCounts();
+    track = V().track || 'conj';
+    const st = T(), c = verbCounts();
+    for (const b of document.querySelectorAll('#verb-track button')) b.setAttribute('aria-pressed', b.dataset.track === track);
+    ['#step-first', '#step-practice', '#step-test'].forEach((id, i) => { $(id).textContent = STEPS[track][i]; });
+    $('.verbs-sub').textContent = track === 'conj' ? 'Präsens: je, tu, il, nous, vous, ils' : 'Deutsche Bedeutung → französischer Infinitiv';
     $('#verb-summary').innerHTML = `
       <span><b>${c.kann}</b>kann ich</span><span><b>${c.lernen}</b>lernen</span><span><b>${c.offen}</b>noch offen</span>`;
     $('#verb-first').textContent = st.first.done ? 'Nochmal von vorn' : st.first.i ? `Weiter (${st.first.i}/100)` : 'Starten';
@@ -282,6 +318,7 @@ export function initGrammar({ $, getState, save, show, home }) {
   $('#open-verbs').onclick = () => data && openVerbs();
   $('#open-adj').onclick = () => data && openAdj();
   $('#verb-first').onclick = startFirst;
+  for (const b of document.querySelectorAll('#verb-track button')) b.onclick = () => { V().track = b.dataset.track; touch(); openVerbs(); };
   $('#verb-practice').onclick = startPractice;
   $('#verb-test').onclick = startTest;
   $('#conj-back').onclick = openVerbs;
@@ -290,7 +327,9 @@ export function initGrammar({ $, getState, save, show, home }) {
   $('#conj-form').onsubmit = e => e.preventDefault();
   $('#conj-form').addEventListener('keydown', e => {
     if (e.key !== 'Enter' || checked) return;
-    e.preventDefault();
+    // this Enter only checks; without stopping it, the "Enter = next verb" shortcut below
+    // would see the verb as checked and skip the result straight away
+    e.preventDefault(); e.stopPropagation();
     const inputs = [...$('#conj-form').querySelectorAll('input')];
     const at = inputs.indexOf(e.target);
     if (at >= 0 && at < inputs.length - 1) inputs[at + 1].focus(); else checkVerb();
@@ -312,8 +351,8 @@ export function initGrammar({ $, getState, save, show, home }) {
     setData(d) { data = d && d.verbs ? d : null; $('#grammar-rows').hidden = !data; },
     renderHome() {
       if (!data) return;
-      const c = verbCounts(), a = A();
-      $('#verb-counts').innerHTML = `<span>${c.kann}<small>kann ich</small></span><span>${c.lernen}<small>lernen</small></span><span>${c.offen}<small>offen</small></span>`;
+      const c = verbCounts('conj'), t = verbCounts('trans'), a = A();
+      $('#verb-counts').innerHTML = `<span>${c.kann}/100<small>konjugiert</small></span><span>${t.kann}/100<small>übersetzt</small></span>`;
       $('#adj-counts').innerHTML = a.runs ? `<span>${a.best}/24<small>Bestwert</small></span>` : '';
     },
     refresh() { if (!$('#verbs').hidden) openVerbs(); },

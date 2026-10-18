@@ -1,7 +1,7 @@
 // Keeps the app available without a connection. Vocabulary and progress are kept by the
 // page itself (localStorage) and synced with GitHub, which this worker never caches.
 
-const CACHE = 'karteikarten-d5586197';
+const CACHE = 'karteikarten-0c462d7e';
 const SHELL = ['./', 'index.html', 'style.css', 'srs.js', 'ring.js', 'typing.js', 'grammar.js', 'app.js', 'gist-storage.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-180.png'];
 
 self.addEventListener('install', (e) => {

@@ -212,3 +212,7 @@ button:focus-visible, .deck:focus-visible, .game-link:focus-visible { outline: 2
 @media (max-width: 420px) { .conj-row { grid-template-columns: 5.4em minmax(0, 1fr) 4.8em; gap: 8px; } }
 
 #conj-go, #adj-go { width: 100%; padding: 14px; }
+
+.verb-track { align-self: flex-start; margin-bottom: 16px; }
+.trans-row { grid-template-columns: 6.6em minmax(0, 1fr) 8em; }
+@media (max-width: 420px) { .trans-row { grid-template-columns: 5.4em minmax(0, 1fr) 6.5em; } }

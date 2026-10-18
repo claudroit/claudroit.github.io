@@ -24,7 +24,7 @@
   <h2 class="group-title">Grammatik</h2>
   <div id="grammar-rows" class="grammar-rows">
     <button id="open-verbs" class="deck">
-      <span class="deck-name">100 Verben<small>Präsens, alle sechs Formen</small></span>
+      <span class="deck-name">100 Verben<small>Konjugieren und übersetzen</small></span>
       <span class="deck-counts" id="verb-counts"></span>
     </button>
     <button id="open-adj" class="deck">
@@ -79,19 +79,23 @@
     <span>100 Verben</span>
     <span></span>
   </header>
-  <div class="top"><h1>100 Verben</h1><span class="sub">Präsens: je, tu, il, nous, vous, ils</span></div>
+  <div class="top"><h1>100 Verben</h1><span class="sub verbs-sub">Präsens: je, tu, il, nous, vous, ils</span></div>
+  <div id="verb-track" class="segmented verb-track">
+    <button data-track="conj">Konjugieren</button>
+    <button data-track="trans">Übersetzen</button>
+  </div>
   <div id="verb-summary" class="verb-summary"></div>
   <ol class="steps-list">
     <li class="step">
-      <div class="step-text"><strong>Erster Durchgang</strong><span>Alle 100 Verben einmal. Was du perfekt konjugierst, kommt zu „Kann ich“, der Rest zu „Lernen“.</span></div>
+      <div class="step-text"><strong>Erster Durchgang</strong><span id="step-first"></span></div>
       <button id="verb-first" class="step-go"></button>
     </li>
     <li class="step">
-      <div class="step-text"><strong>Üben</strong><span>Nur die Verben unter „Lernen“. Ein Verb sitzt, wenn du es zweimal perfekt konjugiert hast.</span></div>
+      <div class="step-text"><strong>Üben</strong><span id="step-practice"></span></div>
       <button id="verb-practice" class="step-go"></button>
     </li>
     <li class="step">
-      <div class="step-text"><strong>Abschlusstest</strong><span>Alle 100 Verben gemischt, auch die, die du schon konntest. Fehler kommen zurück zu „Lernen“.</span><span id="verb-tests" class="step-note"></span></div>
+      <div class="step-text"><strong>Abschlusstest</strong><span id="step-test"></span><span id="verb-tests" class="step-note"></span></div>
       <button id="verb-test" class="step-go"></button>
     </li>
   </ol>

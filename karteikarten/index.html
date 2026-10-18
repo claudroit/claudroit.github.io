@@ -31,6 +31,13 @@
       </div>
     </div>
     <div class="setting">
+      <span>DE → FR tippen</span>
+      <div id="typing" class="segmented">
+        <button data-typing="on">An</button>
+        <button data-typing="off">Aus</button>
+      </div>
+    </div>
+    <div class="setting">
       <span>Neue Karten pro Tag</span>
       <div class="stepper"><button id="fewer" aria-label="Weniger">−</button><span id="new-per-day"></span><button id="more" aria-label="Mehr">+</button></div>
     </div>
@@ -64,6 +71,18 @@
   <main class="card">
     <div id="card-meta" class="meta"></div>
     <div id="front" class="side"></div>
+    <form id="type-form" class="type-form" autocomplete="off" hidden>
+      <label for="type-input" class="visually-hidden">Antwort auf Französisch</label>
+      <input id="type-input" lang="fr" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Auf Französisch …">
+      <div class="accents" aria-label="Sonderzeichen"><button type="button" tabindex="-1">é</button><button type="button" tabindex="-1">è</button><button type="button" tabindex="-1">ê</button><button type="button" tabindex="-1">ë</button><button type="button" tabindex="-1">à</button><button type="button" tabindex="-1">â</button><button type="button" tabindex="-1">î</button><button type="button" tabindex="-1">ï</button><button type="button" tabindex="-1">ô</button><button type="button" tabindex="-1">û</button><button type="button" tabindex="-1">ù</button><button type="button" tabindex="-1">ü</button><button type="button" tabindex="-1">ç</button><button type="button" tabindex="-1">œ</button></div>
+    </form>
+    <div id="type-result" class="type-result" hidden>
+      <p id="verdict" class="verdict"></p>
+      <div id="diff" class="diff">
+        <span class="who">Du</span><span id="diff-typed" class="line"></span>
+        <span class="who">Richtig</span><span id="diff-answer" class="line"></span>
+      </div>
+    </div>
     <div id="back-wrap" hidden>
       <hr>
       <div id="back" class="side"></div>

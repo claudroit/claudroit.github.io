@@ -1,5 +1,6 @@
 import { answer, untilLabel, fresh, dayOf, AGAIN, HARD, GOOD, EASY } from './srs.js';
 import { createRing } from './ring.js';
+import { check, answerText } from './typing.js';
 
 const $ = sel => document.querySelector(sel);
 const clock = { offset: 0 };                       // tests shift time with this
@@ -98,6 +99,7 @@ function counts(deck, t) {
 }
 
 // ---------- screens ----------
+let typing = false, suggested = GOOD;
 let deck = DECKS[0], current = null, revealed = false, shown = 0, undoStack = [];
 const ring = createRing($('#ring'), {
   progress: () => wait ? (now() - wait.from) / (wait.until - wait.from) : 0,
@@ -131,6 +133,7 @@ function home() {
   }).join('');
   for (const b of document.querySelectorAll('.deck')) b.onclick = () => { deck = DECKS.find(d => d.key === b.dataset.key); start(); };
   for (const b of document.querySelectorAll('#dir button')) b.setAttribute('aria-pressed', b.dataset.dir === state.settings.dir);
+  for (const b of document.querySelectorAll('#typing button')) b.setAttribute('aria-pressed', (b.dataset.typing === 'on') === (state.settings.typeDE !== false));
   $('#new-per-day').textContent = state.settings.newPerDay;
   const best = state.game.scores[0]?.s;
   $('#game-best').textContent = best ? `Bestwert ${best}` : '';
@@ -169,18 +172,52 @@ function study(card) {
   $('#reveal').hidden = false;
   $('#grades').hidden = true;
   $('#undo').hidden = !undoStack.length;
+  // DE → FR: type the French, like in the test
+  typing = card.dir === 'de' && state.settings.typeDE !== false;
+  $('#type-form').hidden = !typing;
+  $('#type-result').hidden = true;
+  $('#reveal').textContent = typing ? 'Prüfen' : 'Antwort zeigen';
+  const input = $('#type-input');
+  input.value = ''; input.readOnly = false;
   header();
   show('study');
+  if (typing) input.focus();
+}
+
+const VERDICT = { right: 'Richtig', accent: 'Fast: ein Akzent stimmt nicht', wrong: 'Nicht ganz', empty: 'Nicht gewusst' };
+const SUGGEST = { right: GOOD, accent: HARD, wrong: AGAIN, empty: AGAIN };
+const marked = parts => parts.map(p => {
+  const c = p.c === ' ' ? '\u00a0' : p.c;
+  const span = document.createElement('span');
+  span.textContent = c;
+  if (!p.ok) span.className = 'off';
+  return span.outerHTML;
+}).join('');
+
+function checkTyped() {
+  const input = $('#type-input');
+  const r = check(current.note.fr, input.value);
+  input.readOnly = true; input.blur();
+  $('#type-form').hidden = true;
+  $('#type-result').hidden = false;
+  $('#type-result').dataset.result = r.result;
+  $('#verdict').textContent = VERDICT[r.result];
+  $('#diff').hidden = !r.diff;
+  if (r.diff) { $('#diff-typed').innerHTML = marked(r.diff.typed); $('#diff-answer').innerHTML = marked(r.diff.answer); }
+  suggested = SUGGEST[r.result];
 }
 
 function reveal() {
   if (!current || revealed) return;
   revealed = true;
+  suggested = GOOD;
+  if (typing) checkTyped();
   $('#back-wrap').hidden = false;
   $('#reveal').hidden = true;
   const t = now(), s = cardState(current.id);
   for (const b of document.querySelectorAll('#grades button')) {
     b.querySelector('small').textContent = untilLabel(answer(s, Number(b.dataset.grade), t), t);
+    b.classList.toggle('primary', Number(b.dataset.grade) === suggested);   // the typed answer's suggestion
   }
   $('#grades').hidden = false;
 }
@@ -295,6 +332,20 @@ function speakFrench() {
 
 // ---------- wiring ----------
 $('#reveal').onclick = reveal;
+$('#type-form').onsubmit = e => { e.preventDefault(); reveal(); };
+// accent buttons type at the cursor without taking the focus away
+for (const b of document.querySelectorAll('.accents button')) {
+  b.onpointerdown = e => e.preventDefault();
+  b.onclick = () => {
+    const input = $('#type-input');
+    if (input.readOnly) return;
+    const { selectionStart: a, selectionEnd: z, value } = input;
+    input.value = value.slice(0, a ?? value.length) + b.textContent + value.slice(z ?? value.length);
+    const pos = (a ?? value.length) + b.textContent.length;
+    input.focus(); input.setSelectionRange(pos, pos);
+  };
+}
+for (const b of document.querySelectorAll('#typing button')) b.onclick = () => setSetting('typeDE', b.dataset.typing === 'on');
 for (const b of document.querySelectorAll('#grades button')) b.onclick = () => grade(Number(b.dataset.grade));
 for (const b of document.querySelectorAll('.back-home')) b.onclick = home;
 $('#undo').onclick = undo;
@@ -313,9 +364,10 @@ $('#fewer').onclick = () => setSetting('newPerDay', Math.max(0, state.settings.n
 $('#more').onclick = () => setSetting('newPerDay', Math.min(200, state.settings.newPerDay + 5));
 
 addEventListener('keydown', e => {
-  if (e.metaKey && e.key === 'z') { e.preventDefault(); return undo(); }
-  if ($('#study').hidden || e.metaKey || e.ctrlKey || e.altKey) return;
-  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); revealed ? grade(GOOD) : reveal(); }
+  const inField = e.target.matches?.('input');
+  if (e.metaKey && e.key === 'z' && !inField) { e.preventDefault(); return undo(); }
+  if ($('#study').hidden || e.metaKey || e.ctrlKey || e.altKey || inField) return;
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); revealed ? grade(suggested) : reveal(); }
   else if (revealed && ['1', '2', '3', '4'].includes(e.key)) grade(Number(e.key));
 });
 

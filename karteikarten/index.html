@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Französisch-Vokabeln lernen wie mit Anki, synchronisiert über deinen eigenen GitHub-Gist.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Karteikarten">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<title>Karteikarten</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="home" class="screen" hidden>
+  <header class="top"><h1>Französisch</h1><span class="sub">TSW Semester 1</span></header>
+  <div id="decks"></div>
+  <div class="settings">
+    <div class="setting">
+      <span>Richtung</span>
+      <div id="dir" class="segmented">
+        <button data-dir="both">Beide</button>
+        <button data-dir="de">DE → FR</button>
+        <button data-dir="fr">FR → DE</button>
+      </div>
+    </div>
+    <div class="setting">
+      <span>Neue Karten pro Tag</span>
+      <div class="stepper"><button id="fewer" aria-label="Weniger">−</button><span id="new-per-day"></span><button id="more" aria-label="Mehr">+</button></div>
+    </div>
+  </div>
+  <button id="open-game" class="game-link">
+    <span class="game-link-name">Ring-Spiel<small>Halte den Ball im Kreis</small></span>
+    <span id="game-best" class="game-link-best"></span>
+  </button>
+</section>
+
+<section id="game" class="screen game-screen" hidden>
+  <header class="bar">
+    <button class="back-home link">‹ Decks</button>
+    <span>Ring-Spiel</span>
+    <span id="game-runs" class="counts"></span>
+  </header>
+  <main class="game-main"><canvas id="game-ring"></canvas></main>
+  <p id="game-status" class="game-status" aria-live="polite"></p>
+  <footer class="scores">
+    <h2 class="scores-title">Bestenliste</h2>
+    <ol id="scores"></ol>
+  </footer>
+</section>
+
+<section id="study" class="screen" hidden>
+  <header class="bar">
+    <button class="back-home link">‹ Decks</button>
+    <span id="study-deck"></span>
+    <span id="study-counts" class="counts" title="neu · lernen · fällig"></span>
+  </header>
+  <main class="card">
+    <div id="card-meta" class="meta"></div>
+    <div id="front" class="side"></div>
+    <div id="back-wrap" hidden>
+      <hr>
+      <div id="back" class="side"></div>
+      <button id="speak" class="link speak" aria-label="Französisch vorlesen">Vorlesen</button>
+    </div>
+  </main>
+  <footer class="actions">
+    <button id="reveal" class="primary">Antwort zeigen</button>
+    <div id="grades" hidden>
+      <button data-grade="1">Nochmal<small></small></button>
+      <button data-grade="2">Schwer<small></small></button>
+      <button data-grade="3" class="primary">Gut<small></small></button>
+      <button data-grade="4">Einfach<small></small></button>
+    </div>
+    <button id="undo" class="link small" hidden>Rückgängig</button>
+  </footer>
+</section>
+
+<section id="wait" class="screen" hidden>
+  <header class="bar">
+    <button class="back-home link">‹ Decks</button>
+    <span id="wait-deck"></span>
+    <span></span>
+  </header>
+  <main class="center">
+    <p class="quiet">Die nächste Karte ist noch nicht dran.</p>
+    <canvas id="ring" width="220" height="220"></canvas>
+    <button id="early" class="link small">Jetzt schon lernen</button>
+  </main>
+</section>
+
+<section id="done" class="screen" hidden>
+  <header class="bar">
+    <button class="back-home link">‹ Decks</button>
+    <span></span><span></span>
+  </header>
+  <main class="center">
+    <h2>Fertig für heute</h2>
+    <p id="done-text" class="quiet"></p>
+    <button id="more-new" class="link small" hidden>10 weitere neue Karten</button>
+  </main>
+</section>
+
+<p id="offline" class="offline" hidden>Fortschritt wird nur in diesem Browser gespeichert – der Server antwortet nicht.</p>
+
+<script src="gist-storage.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

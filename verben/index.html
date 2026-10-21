@@ -18,6 +18,11 @@
     <span></span>
   </header>
   <div class="top"><h1>100 Verben</h1><span class="sub verbs-sub">Präsens: je, tu, il, nous, vous, ils</span></div>
+  <div id="verb-scope" class="segmented verb-track" role="group" aria-label="Verbauswahl">
+    <button data-scope="all">Alle Verben</button>
+    <button data-scope="accents">Verben mit Akzenten</button>
+  </div>
+  <p id="scope-note" class="quiet small"></p>
   <div id="verb-track" class="segmented verb-track">
     <button data-track="conj">Konjugieren</button>
     <button data-track="trans">Übersetzen</button>
@@ -37,7 +42,7 @@
       <button id="verb-test" class="step-go"></button>
     </li>
   </ol>
-  <details class="verb-list"><summary>Alle Verben</summary><div id="verb-list"></div></details>
+  <details class="verb-list"><summary id="verb-list-label">Alle Verben</summary><div id="verb-list"></div></details>
 </section>
 
 <section id="conj" class="screen" hidden>

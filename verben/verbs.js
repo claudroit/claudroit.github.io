@@ -1,15 +1,25 @@
 // Verb trainer adapted from Karteikarten. Both tracks save locally.
+// Includes combining accents and cedillas in any accepted French form.
+function hasVerbAccent(verb) {
+  return [verb.inf, ...verb.forms.flat().filter(Boolean)]
+    .some(form => /\p{M}/u.test(form.normalize('NFD')));
+}
+
 function initVerbs({ $, getState, save, show }) {
   let data = null;                                 // Bundled verb data
   const PERSONS = ['je', 'tu', 'il/elle', 'nous', 'vous', 'ils/elles'];
   const REFLEXIVE = ['me', 'te', 'se', 'nous', 'vous', 'se'];
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
+  const selectedVerbs = () => getState().verbScope === 'accents'
+    ? data.verbs.filter(hasVerbAccent) : data.verbs;
+
   // ---------- state ----------
   function V() {
     const st = getState();
-    st.verbs ||= { s: {}, first: { i: 0, done: false }, run: null, tests: [], m: 0 };
-    const v = st.verbs;
+    const key = st.verbScope === 'accents' ? 'accentVerbs' : 'verbs';
+    st[key] ||= { s: {}, first: { i: 0, done: false }, run: null, tests: [], m: 0 };
+    const v = st[key];
     v.t ||= {}; v.tfirst ||= { i: 0, done: false }; v.ttests ||= []; if (v.trun === undefined) v.trun = null;
     return v;
   }
@@ -21,8 +31,8 @@ function initVerbs({ $, getState, save, show }) {
   function verbCounts(which = track) {
     const s = V()[KEYS[which].s];
     let kann = 0, lernen = 0;
-    for (const v of data.verbs) { const e = s[v.inf]; if (e?.k) kann++; else if (e) lernen++; }
-    return { kann, lernen, offen: data.verbs.length - kann - lernen };
+    for (const v of selectedVerbs()) { const e = s[v.inf]; if (e?.k) kann++; else if (e) lernen++; }
+    return { kann, lernen, offen: selectedVerbs().length - kann - lernen };
   }
 
   // ---------- one verb on screen ----------
@@ -110,7 +120,7 @@ function initVerbs({ $, getState, save, show }) {
     if (session.kind === 'first') {
       s[inf] = perfect ? { k: 1 } : { k: 0, st: 0 };
       st.first.i = session.i + 1;
-      if (st.first.i >= data.verbs.length) st.first.done = true;
+      if (st.first.i >= selectedVerbs().length) st.first.done = true;
     } else if (session.kind === 'practice') {
       const e = s[inf] || { k: 0, st: 0 };
       if (perfect) {
@@ -134,7 +144,7 @@ function initVerbs({ $, getState, save, show }) {
   function nextVerb() {
     session.i++;
     if (session.i >= session.queue.length) return finish();
-    askVerb(data.verbs.find(v => v.inf === session.queue[session.i]));
+    askVerb(selectedVerbs().find(v => v.inf === session.queue[session.i]));
   }
 
   function finish() {
@@ -169,23 +179,23 @@ function initVerbs({ $, getState, save, show }) {
 
   function startFirst() {
     const st = T();
-    if (st.first.done) { st.first = { i: 0, done: false }; for (const v of data.verbs) delete st.s[v.inf]; touch(); }
-    session = { kind: 'first', queue: data.verbs.map(v => v.inf), i: st.first.i, total: data.verbs.length };
-    askVerb(data.verbs[session.i]);
+    if (st.first.done) { st.first = { i: 0, done: false }; for (const v of selectedVerbs()) delete st.s[v.inf]; touch(); }
+    session = { kind: 'first', queue: selectedVerbs().map(v => v.inf), i: st.first.i, total: selectedVerbs().length };
+    askVerb(selectedVerbs()[session.i]);
   }
   function startPractice() {
     const s = T().s;
-    const queue = shuffle(data.verbs.filter(v => s[v.inf] && !s[v.inf].k).map(v => v.inf));
+    const queue = shuffle(selectedVerbs().filter(v => s[v.inf] && !s[v.inf].k).map(v => v.inf));
     if (!queue.length) return openVerbs();
     session = { kind: 'practice', queue, i: 0, total: queue.length };
-    askVerb(data.verbs.find(v => v.inf === queue[0]));
+    askVerb(selectedVerbs().find(v => v.inf === queue[0]));
   }
   function startTest() {
     const st = T();
-    if (!st.run) { st.run = { order: shuffle(data.verbs.map(v => v.inf)), i: 0, ok: 0, wrong: [] }; touch(); }
+    if (!st.run) { st.run = { order: shuffle(selectedVerbs().map(v => v.inf)), i: 0, ok: 0, wrong: [] }; touch(); }
     session = { kind: 'test', queue: st.run.order, i: st.run.i, total: st.run.order.length };
     if (session.i >= session.queue.length) return finish();
-    askVerb(data.verbs.find(v => v.inf === session.queue[session.i]));
+    askVerb(selectedVerbs().find(v => v.inf === session.queue[session.i]));
   }
 
   // ---------- overview ----------
@@ -201,21 +211,30 @@ function initVerbs({ $, getState, save, show }) {
   function openVerbs() {
     track = V().track || 'conj';
     const st = T(), c = verbCounts();
+    const count = selectedVerbs().length;
+    const accents = getState().verbScope === 'accents';
+    for (const b of document.querySelectorAll('#verb-scope button')) {
+      b.setAttribute('aria-pressed', (b.dataset.scope === 'accents') === accents);
+    }
+    $('#scope-note').textContent = accents
+      ? `${count} Verben mit Akzent oder Cedille im Infinitiv oder in einer Präsensform. Eigener Lernfortschritt.`
+      : 'Alle 100 Verben.';
+    $('#verb-list-label').textContent = accents ? `Alle ${count} Verben mit Akzenten` : 'Alle Verben';
     for (const b of document.querySelectorAll('#verb-track button')) b.setAttribute('aria-pressed', b.dataset.track === track);
-    ['#step-first', '#step-practice', '#step-test'].forEach((id, i) => { $(id).textContent = STEPS[track][i]; });
+    ['#step-first', '#step-practice', '#step-test'].forEach((id, i) => { $(id).textContent = STEPS[track][i].replaceAll('100', String(count)); });
     $('.verbs-sub').textContent = track === 'conj' ? 'Präsens: je, tu, il, nous, vous, ils' : 'Deutsche Bedeutung → französischer Infinitiv';
     $('#verb-summary').innerHTML = `
       <span><b>${c.kann}</b>kann ich</span><span><b>${c.lernen}</b>lernen</span><span><b>${c.offen}</b>noch offen</span>`;
-    $('#verb-first').textContent = st.first.done ? 'Nochmal von vorn' : st.first.i ? `Weiter (${st.first.i}/100)` : 'Starten';
+    $('#verb-first').textContent = st.first.done ? 'Nochmal von vorn' : st.first.i ? `Weiter (${st.first.i}/${count})` : 'Starten';
     $('#verb-first').classList.toggle('primary', !st.first.done);
     $('#verb-practice').textContent = c.lernen ? `${c.lernen} üben` : 'Nichts zu üben';
     $('#verb-practice').disabled = !c.lernen;
     $('#verb-practice').classList.toggle('primary', st.first.done && c.lernen > 0);
-    $('#verb-test').textContent = st.run ? `Weiter (${st.run.i}/100)` : 'Test starten';
+    $('#verb-test').textContent = st.run ? `Weiter (${st.run.i}/${count})` : 'Test starten';
     $('#verb-test').classList.toggle('primary', st.first.done && !c.lernen);
     const tests = st.tests || [];
     $('#verb-tests').textContent = tests.length ? 'Bisher: ' + tests.slice(-4).map(t => `${t.s}/${t.of} (${dateFmt.format(t.t)})`).join(' · ') : '';
-    $('#verb-list').innerHTML = data.verbs.map(v => {
+    $('#verb-list').innerHTML = selectedVerbs().map(v => {
       const e = st.s[v.inf], cls = e?.k ? 'kann' : e ? 'lernen' : 'offen';
       return `<div class="vrow ${cls}"><span class="vn">${v.n}</span><span class="vinf">${v.inf}</span><span class="vde">${v.de}</span></div>`;
     }).join('');
@@ -223,6 +242,11 @@ function initVerbs({ $, getState, save, show }) {
   }
 
   // ---------- wiring ----------
+  for (const b of document.querySelectorAll('#verb-scope button')) b.onclick = () => {
+    getState().verbScope = b.dataset.scope;
+    session = null; verb = null; checked = false;
+    save(); openVerbs();
+  };
   $('#verb-first').onclick = startFirst;
   for (const b of document.querySelectorAll('#verb-track button')) b.onclick = () => { V().track = b.dataset.track; touch(); openVerbs(); };
   $('#verb-practice').onclick = startPractice;

@@ -11,3 +11,5 @@ Progress is stored only in browser localStorage under `karteikarten-verben-v1`. 
 Progress is specific to this browser and origin. Clearing browser data removes it; private browsing may discard it. For consistent storage, use a stable local server address. Opening files directly depends on the browser's file-storage support. Storage failures are shown on the page. Existing Karteikarten progress is not imported.
 
 Published at https://claudroit.github.io/verben/. The bundled verb data is publicly accessible; learning progress remains only in each browser.
+
+“Verben mit Akzenten” selects verbs whose infinitive or any accepted present-tense form contains a diacritic (including ç). It has independent local progress for conjugation and translation, with first pass, practice, and final tests. Existing all-verbs progress is preserved.

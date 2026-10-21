@@ -17,7 +17,18 @@ try {
       const track = parsed.tracks?.[mode];
       if (!track || !track.known || !track.runs || !Array.isArray(track.tests)) throw new Error('Invalid progress');
       for (const run of Object.values(track.runs)) {
-        if (!run || !Array.isArray(run.ids) || !run.ids.every(id => byId.has(id)) || !Number.isInteger(run.i) || run.i < 0 || run.i > run.ids.length) throw new Error('Invalid run');
+        if (!run || !Array.isArray(run.ids) || !Number.isInteger(run.i) || run.i < 0 || run.i > run.ids.length) throw new Error('Invalid run');
+        // Preserve answers if the earlier 62-word upload was already used.
+        const removed = new Set('régulier masculin féminin particulier certain différent autre singulier pluriel comparatif superlatif'.split(' '));
+        if (!run.ids.every(id => byId.has(id) || removed.has(id))) throw new Error('Unknown adjective');
+        if (run.ids.some(id => removed.has(id))) {
+          run.i = run.ids.slice(0, run.i).filter(id => byId.has(id)).length;
+          run.ids = run.ids.filter(id => byId.has(id));
+          run.wrong = run.wrong.filter(id => byId.has(id));
+          if (run.kind !== 'practice') { run.total = run.ids.length; run.correct = run.i - run.wrong.length; }
+          run.complete = run.i >= run.ids.length;
+          if (run.kind === 'first') track.firstDone = run.complete;
+        }
       }
     }
     state = parsed;

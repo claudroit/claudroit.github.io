@@ -1,6 +1,6 @@
 const pages = {
-  verben: { title: 'Verben', path: '../verben/' },
-  adjectifs: { title: 'Adjektive', path: '../adjectifs/' },
+  verben: { title: 'Verben', path: 'trainers/verben/' },
+  adjectifs: { title: 'Adjektive', path: 'trainers/adjectifs/' },
 };
 const overview = document.getElementById('overview');
 const trainer = document.getElementById('trainer');
@@ -17,7 +17,7 @@ frame.addEventListener('load', () => {
   frame.hidden = false;
 });
 function route() {
-  const key = location.hash.slice(1), page = pages[key];
+  const key = location.hash.slice(1), page = Object.hasOwn(pages, key) ? pages[key] : null;
   overview.hidden = Boolean(page);
   trainer.hidden = !page;
   document.body.classList.toggle('learning', Boolean(page));
@@ -28,14 +28,16 @@ function route() {
     return;
   }
   document.getElementById('topic-title').textContent = page.title;
-  document.getElementById('standalone').href = page.path;
+  document.getElementById('standalone').href = '../' + key + '/';
   frame.title = `${page.title} lernen`;
   if (active !== key) {
     active = key;
     loading.hidden = false;
     frame.hidden = true;
-    frame.src = page.path;
+    frame.src = page.path + (window.frenchUserId ? '?profile=' + encodeURIComponent(window.frenchUserId) : '');
   }
 }
 addEventListener('hashchange', route);
 route();
+
+addEventListener('french-account-change', () => { active = null; route(); });

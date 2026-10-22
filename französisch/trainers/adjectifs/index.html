@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Adjectifs · Adjektive lernen</title><link rel="stylesheet" href="style.css">
+<script defer src="data.js"></script><script defer src="core.js"></script><script defer src="app.js"></script></head>
+<body>
+<section id="home" class="screen">
+<header class="bar"><a class="link" href="../verben/">‹ Verben</a><span>Französisch</span><span>L’adjectif</span></header>
+<div class="top"><h1>Adjectifs</h1><span class="sub" id="deck-description"></span></div>
+<div id="mode" class="segmented verb-track" role="group" aria-label="Lernrichtung"><button data-mode="fr" aria-pressed="true">FR → DE + Formen</button><button data-mode="de" aria-pressed="false">DE → FR + Formen</button></div>
+<p id="mode-description" class="home-note"></p>
+<div id="base-setting"><label for="base">Gegebene französische Form</label><select id="base"><option value="mixed">Maskulin und feminin gemischt</option><option value="ms">Maskulin Singular</option><option value="fs">Feminin Singular</option></select></div>
+<div id="summary" class="verb-summary"></div>
+<ol class="steps-list">
+<li class="step"><div class="step-text"><strong>Erster Durchgang</strong><span id="first-description"></span></div><button id="first" class="step-go"></button></li>
+<li class="step"><div class="step-text"><strong>Üben</strong><span>Nur die Adjektive unter „Lernen“. Zweimal alles richtig, dann sitzt es.</span></div><button id="practice" class="step-go"></button></li>
+<li class="step"><div class="step-text"><strong>Abschlusstest</strong><span>Alle Adjektive gemischt. Fehler kommen zurück zu „Lernen“.</span><span id="tests" class="step-note"></span></div><button id="test" class="step-go"></button></li>
+</ol>
+<details class="verb-list"><summary id="library-title">Alle Adjektive & Formen</summary><label for="library-search" class="visually-hidden">Adjektive suchen</label><input id="library-search" class="conj-input" type="search" placeholder="Französisch oder Deutsch suchen …"><div id="library"></div></details>
+</section>
+<section id="study" class="screen" hidden>
+<header class="bar"><button id="back" class="link">‹ Adjektive</button><span id="run-kind"></span><span id="progress" class="counts"></span></header>
+<main class="card conj-card"><div id="prompt-meta" class="meta"></div><div id="prompt" class="side" lang="fr"></div><p id="hint" class="conj-de"></p>
+<form id="answer-form" class="conj-form" autocomplete="off"></form>
+<div class="accents" aria-label="Sonderzeichen"><button type="button" tabindex="-1">é</button><button type="button" tabindex="-1">è</button><button type="button" tabindex="-1">ê</button><button type="button" tabindex="-1">ë</button><button type="button" tabindex="-1">à</button><button type="button" tabindex="-1">â</button><button type="button" tabindex="-1">î</button><button type="button" tabindex="-1">ï</button><button type="button" tabindex="-1">ô</button><button type="button" tabindex="-1">û</button><button type="button" tabindex="-1">ù</button><button type="button" tabindex="-1">ü</button><button type="button" tabindex="-1">ç</button><button type="button" tabindex="-1">œ</button><button type="button" tabindex="-1">ä</button><button type="button" tabindex="-1">ö</button><button type="button" tabindex="-1">ß</button></div>
+<p id="verdict" class="verdict conj-verdict" aria-live="polite"></p><p id="answer-note" hidden></p>
+</main><footer class="actions"><button id="go" class="primary">Prüfen</button></footer>
+</section>
+<section id="done" class="screen" hidden><header class="bar"><button id="done-back" class="link">‹ Adjektive</button><span></span><span></span></header>
+<main class="center"><h2 id="done-title"></h2><p id="done-text" class="quiet"></p><div id="done-list" class="chips"></div><button id="done-next" class="primary wide"></button></main></section>
+<p id="storage-status" class="storage-status" role="status">Fortschritt wird nur in diesem Browser gespeichert.</p>
+<noscript>Bitte aktiviere JavaScript, um die Adjektive zu üben.</noscript>
+</body></html>

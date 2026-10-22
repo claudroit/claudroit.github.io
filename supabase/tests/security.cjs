@@ -1,0 +1,46 @@
+const {PGlite}=require(require.resolve('@electric-sql/pglite',{paths:[__dirname,process.env.FRENCH_TEST_DEPS||'/private/tmp/french-backend-check']}));
+const fs=require('node:fs'),assert=require('node:assert/strict');
+(async()=>{
+ const db=new PGlite();
+ await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key,email text);create function auth.uid() returns uuid language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;`);
+ await db.exec(fs.readFileSync('supabase/setup.sql','utf8'));
+ const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222';
+ await db.query('insert into auth.users values($1,$2),($3,$4)',[a,'alice@learners.example.invalid',b,'bob@learners.example.invalid']);
+ const as=async id=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('set role authenticated');};
+ const api=async(action,payload={})=>(await db.query('select public.french_api($1,$2::jsonb) as value',[action,JSON.stringify(payload)])).rows[0].value;
+ const denied=async fn=>{let err;try{await fn();}catch(e){err=e;}assert.ok(err,'Expected rejection');};
+ await denied(()=>db.query('insert into auth.users values($1,$2)',['33333333-3333-4333-8333-333333333333','alice@learners.example.invalid']));
+ const norms=await db.query("select french_private.norm(' ÉTÉ ','fr') as accent,french_private.norm('groß','de') as german");assert.equal(norms.rows[0].accent,'été');assert.equal(norms.rows[0].german,'gross');
+ await as(a);assert.equal((await api('home')).username,'alice');
+ await denied(()=>db.query('select * from french_private.questions'));
+ await denied(()=>db.query('update french_private.runs set correct=10'));
+ await denied(()=>db.query('select french_private.pick_questions()'));
+ await api('save',{revision:0,data:{practice:{score:999}}});
+ await denied(()=>api('save',{revision:0,data:{}}));
+ assert.deepEqual(await api('leaderboard'),[],'Progress cannot forge leaderboard scores');
+ const {id}=await api('start');const first=await api('question',{id});assert.equal(first.index,1);assert.ok(!('answers' in first));
+ const again=await api('question',{id});assert.equal(again.deadline,first.deadline);
+ await denied(()=>api('answer',{id,index:2,answer:'anything'}));
+ await as(b);await denied(()=>api('question',{id}));await denied(()=>api('answer',{id,index:1,answer:'anything'}));
+ assert.deepEqual((await api('home')).progress.data,{});
+ await as(a);
+ for(let i=1;i<=10;i++){
+ const q=await api('question',{id});assert.equal(q.index,i);
+ await db.exec('reset role');const answer=(await db.query('select q.answers->>0 as answer from french_private.questions q join french_private.runs r on q.id=r.question_ids[r.idx] where r.id=$1',[id])).rows[0].answer;await as(a);
+ const scored=await api('answer',{id,index:i,answer});assert.equal(scored.correct,true);
+ if(i<10)await denied(()=>api('answer',{id,index:i,answer}));
+ }
+ assert.equal((await api('result',{id})).score,10);assert.equal((await api('leaderboard'))[0].correct,10);
+ const m=await api('challenge',{username:'BOB'});await denied(()=>api('accept',{id:m.id}));await denied(()=>api('challenge',{username:'bob'}));
+ await as(b);await api('accept',{id:m.id});await denied(()=>api('accept',{id:m.id}));
+ await db.exec('reset role');const runs=(await db.query('select * from french_private.runs where match_id=$1',[m.id])).rows;
+ assert.equal(runs.length,2);assert.deepEqual(runs[0].question_ids,runs[1].question_ids);
+ const ar=runs.find(r=>r.user_id===a),br=runs.find(r=>r.user_id===b);
+ await as(a);await api('question',{id:ar.id});await db.exec('reset role');await db.query("update french_private.runs set question_started=now()-interval '31 seconds' where id=$1",[ar.id]);await as(a);
+ assert.equal((await api('answer',{id:ar.id,index:1,answer:''})).correct,false);
+ await api('forfeit',{id:ar.id});await as(b);await api('forfeit',{id:br.id});
+ assert.equal((await api('home')).matches[0].their_score,0);
+ await db.exec("reset role;set role anon;");await denied(()=>api('home'));
+ console.log('PASS: registration, private data, save conflicts, score forgery, answer replay, deadline, ownership, ranking, duel acceptance and identical questions.');
+ await db.close();
+})().catch(e=>{console.error(e.message,e.where||e.position);process.exit(1)});

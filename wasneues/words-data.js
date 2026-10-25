@@ -9,7 +9,7 @@ const CATS = {
   food:       { label: 'Essen, Trinken & Alltag', note: 'Formen: der Stamm für die Fälle, ohne Bindestrich (vesi → vede).' },
   things:     { label: 'Verkehr, Natur & Dinge', note: 'Formen: der Stamm für die Fälle, ohne Bindestrich (sade → satee).' },
   time:       { label: 'Zeitangaben', note: 'Keine Formen, nur Übersetzen.' },
-  countries:  { label: 'Länder', note: 'In einem Land: -ssa / -ssä. Aus einem Land: -sta / -stä.' },
+  countries:  { label: 'Länder & Städte', note: 'In einem Land: -ssa / -ssä. Aus einem Land: -sta / -stä.' },
   adjectives: { label: 'Adjektive', note: 'Adjektive stehen vor dem Nomen: hyvä talo = ein gutes Haus.' },
   particles:  { label: 'Partikeln & Verbindungswörter', note: 'Diese Wörter verändern sich nie.' },
 };
@@ -82,7 +82,11 @@ const RAW = {
     ['tietokone', 'Computer', 'tietokonee'], ['kirja', 'Buch', 'kirja'], ['kirje', 'Brief', 'kirjee'],
     ['sähköposti', 'E-Mail', 'sähköposti'], ['raha', 'Geld', 'raha'], ['kortti', 'Karte (EC / Guthaben)', 'kortti'],
     ['lasku', 'Rechnung', 'lasku'],
-  ].map(([fi, de, a]) => [fi, de, [['Stamm', a]]]),
+  ].map(([fi, de, a]) => {
+    // four words also practise the place form (Unit 2)
+    const loc = { vesi: ['im Wasser', 'vedessä'], kahvi: ['im Kaffee', 'kahvissa'], leipä: ['im Brot', 'leivässä'], raha: ['im Geld', 'rahassa'] }[fi];
+    return [fi, de, loc ? [['Stamm', a], loc] : [['Stamm', a]]];
+  }),
 
   things: [
     ['auto', 'Auto', 'auto'], ['bussi', 'Bus', 'bussi'], ['juna', 'Zug', 'juna'], ['lentokone', 'Flugzeug', 'lentokonee'],
@@ -134,11 +138,39 @@ const RAW = {
     ['siellä', 'dort'], ['missä', 'wo'], ['miten', 'wie'], ['paljon', 'viel'], ['vähän', 'wenig / ein bisschen'],
     ['erittäin / hyvin', 'sehr'], ['liian', 'zu (z. B. zu teuer)'], ['melkein', 'fast'], ['ehkä', 'vielleicht'],
     ['tottakai', 'natürlich'], ['anteeksi', 'Entschuldigung'], ['kiitos', 'Danke'], ['ole hyvä', 'Bitte sehr'],
-    ['hei / terve', 'Hallo'], ['näkemiin / moikka', 'Auf Wiedersehen / Tschüss'], ['kyllä / joo', 'Ja'], ['ei', 'Nein'],
+    ['hei / terve', 'Hallo'], ['näkemiin', 'Auf Wiedersehen'], ['kyllä / joo', 'Ja'], ['ei', 'Nein'],
   ],
 };
 
 const WORDS = [];
 for (const cat of Object.keys(CATS)) {
   for (const [fi, de, forms] of RAW[cat]) WORDS.push({ n: WORDS.length + 1, cat, fi, de, forms: forms || null });
+}
+// added later for the units; appended at the end so existing word numbers (and saved progress) stay the same
+for (const [cat, fi, de, forms] of [
+  ['countries', 'Berlin', 'Berlin', [['in Berlin', 'Berlinissä'], ['aus Berlin', 'Berlinistä']]],
+  ['countries', 'Basel', 'Basel', [['in Basel', 'Baselissa'], ['aus Basel', 'Baselista']]],
+  ['particles', 'moikka', 'Tschüss (ganz umgangssprachlich)', null],
+  ['particles', 'mielellään / mieluusti', 'gerne', null],
+]) WORDS.push({ n: WORDS.length + 1, cat, fi, de, forms });
+
+// Häppchen: small learning chunks, in learning order. Each word is looked up by category + Finnish word.
+const UNITS = [
+  { id: 'h1', label: 'Häppchen 1', note: '15 Alltagsverben, 10 Nomen, 5 Länder und Städte, 10 Floskeln. Stamm + Endung: asu- + n = asun; in: -ssa / -ssä, aus: -sta / -stä.', words: [
+    ['verbs', 'olla'], ['verbs', 'asua'], ['verbs', 'puhua'], ['verbs', 'oppia'], ['verbs', 'ymmärtää'],
+    ['verbs', 'haluta'], ['verbs', 'syödä'], ['verbs', 'juoda'], ['verbs', 'ostaa'], ['verbs', 'tulla'],
+    ['verbs', 'mennä'], ['verbs', 'tehdä'], ['verbs', 'nähdä'], ['verbs', 'työskennellä'], ['verbs', 'rakastaa'],
+    ['places', 'talo'], ['places', 'kaupunki'], ['places', 'kauppa'], ['places', 'kahvila'], ['places', 'koulu'],
+    ['places', 'toimisto'], ['food', 'vesi'], ['food', 'kahvi'], ['food', 'leipä'], ['food', 'raha'],
+    ['countries', 'Suomi'], ['countries', 'Saksa'], ['countries', 'Sveitsi'], ['countries', 'Berlin'], ['countries', 'Basel'],
+    ['particles', 'hei / terve'], ['particles', 'moikka'], ['particles', 'näkemiin'], ['particles', 'kiitos'],
+    ['particles', 'ole hyvä'], ['particles', 'anteeksi'], ['particles', 'kyllä / joo'], ['particles', 'ei'],
+    ['particles', 'mielellään / mieluusti'], ['adjectives', 'hyvä'] ] },
+];
+for (const u of UNITS) {
+  u.ids = u.words.map(([cat, fi]) => {
+    const w = WORDS.find(x => x.cat === cat && x.fi === fi);
+    if (!w) throw new Error('Unit word missing: ' + cat + ' ' + fi);
+    return w.n;
+  });
 }

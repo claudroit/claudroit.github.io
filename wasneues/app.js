@@ -32,7 +32,7 @@ function show(id) {
   window.scrollTo(0, 0);
 }
 const trainer = initTrainer({ $, getState: () => state, save, show });
-trainer.setData({ words: WORDS, cats: CATS });
+trainer.setData({ words: WORDS, cats: CATS, units: UNITS });
 trainer.open();
 
 let lastField = null;

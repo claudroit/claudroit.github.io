@@ -10,8 +10,8 @@ function initTrainer({ $, getState, save, show }) {
   // ---------- state ----------
   function S() {
     const st = getState();
-    if (!data.cats[st.scope] && st.scope !== 'all') st.scope = 'all';
-    st.scope ||= 'all'; st.track ||= 'trans';
+    if (!st.scope || (st.scope !== 'all' && !data.cats[st.scope] && !unitOf(st.scope))) st.scope = data.units[0].id;
+    st.track ||= 'trans';
     st.words ||= {}; st.words.trans ||= {}; st.words.form ||= {};
     st.runs ||= {};
     return st;
@@ -19,7 +19,12 @@ function initTrainer({ $, getState, save, show }) {
   const scope = () => S().scope;
   const track = () => S().track;
   const known = () => S().words[track()];                       // { id: { k: 1 } | { k: 0, st } }
-  const items = () => data.words.filter(w => (scope() === 'all' || w.cat === scope()) && (track() === 'trans' || w.forms));
+  const unitOf = id => data.units.find(u => u.id === id);
+  const items = () => {
+    const u = unitOf(scope());
+    const base = u ? u.ids.map(id => byId.get(id)) : data.words.filter(w => scope() === 'all' || w.cat === scope());
+    return base.filter(w => track() === 'trans' || w.forms);
+  };
   function P() {                                                // first pass, run and tests of this category + track
     const runs = S().runs, key = scope() + ':' + track();
     runs[key] ||= { first: { i: 0, done: false }, run: null, tests: [] };
@@ -190,13 +195,17 @@ function initTrainer({ $, getState, save, show }) {
     const st = S(), p = P(), c = counts(), list = items(), count = list.length, empty = !count;
     const sel = $('#scope');
     if (!sel.options.length) {
-      sel.innerHTML = `<option value="all">Alle Wörter (${data.words.length})</option>` +
-        Object.entries(data.cats).map(([k, v]) => `<option value="${k}">${v.label} (${data.words.filter(w => w.cat === k).length})</option>`).join('');
+      sel.innerHTML = `<optgroup label="Häppchen">` +
+        data.units.map(u => `<option value="${u.id}">${u.label} (${u.ids.length})</option>`).join('') +
+        `</optgroup><optgroup label="Nach Wortart">` +
+        `<option value="all">Alle Wörter (${data.words.length})</option>` +
+        Object.entries(data.cats).map(([k, v]) => `<option value="${k}">${v.label} (${data.words.filter(w => w.cat === k).length})</option>`).join('') +
+        `</optgroup>`;
     }
     sel.value = st.scope;
     for (const b of document.querySelectorAll('#verb-track button')) b.setAttribute('aria-pressed', b.dataset.track === st.track);
-    const note = st.scope === 'all' ? 'Alle Kategorien gemischt, in der Reihenfolge der Liste.' : data.cats[st.scope].note;
-    $('#scope-note').textContent = empty ? `${note} In dieser Kategorie gibt es keine Formen zum Üben, wähle „Übersetzen“.` : note;
+    const note = st.scope === 'all' ? 'Alle Kategorien gemischt, in der Reihenfolge der Liste.' : (unitOf(st.scope) || data.cats[st.scope]).note;
+    $('#scope-note').textContent = empty ? `${note} Hier gibt es keine Formen zum Üben, wähle „Übersetzen“.` : note;
     $('.verbs-sub').textContent = st.track === 'trans' ? 'Deutsche Bedeutung → finnisches Wort' : 'Finnisches Wort → Verb- oder Fallform';
     $('#verb-list-label').textContent = `Alle ${count} Wörter`;
     STEPS[st.track](count).forEach((t, i) => { $(['#step-first', '#step-practice', '#step-test'][i]).textContent = t; });

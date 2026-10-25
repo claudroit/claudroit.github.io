@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Suomen sanat</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="words-data.js"></script>
+<script defer src="typing.js"></script>
+<script defer src="trainer.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<section id="verbs" class="screen" hidden>
+  <header class="bar">
+    <span></span>
+    <span>Suomen sanat</span>
+    <span></span>
+  </header>
+  <div class="top"><h1>Finnische Wörter</h1><span class="sub verbs-sub"></span></div>
+  <button id="open-cheat" class="cheat-btn" type="button">Cheat-Sheet: Grammatik-Baukasten</button>
+  <select id="scope" class="scope-select" aria-label="Kategorie"></select>
+  <p id="scope-note" class="quiet small"></p>
+  <div id="verb-track" class="segmented verb-track" role="group" aria-label="Übungsart">
+    <button data-track="trans">Übersetzen</button>
+    <button data-track="form">Formen</button>
+  </div>
+  <div id="verb-summary" class="verb-summary"></div>
+  <ol class="steps-list">
+    <li class="step">
+      <div class="step-text"><strong>Erster Durchgang</strong><span id="step-first"></span><button id="verb-skip" class="skip-link" type="button">Überspringen: alle gleich zum Üben</button></div>
+      <button id="verb-first" class="step-go"></button>
+    </li>
+    <li class="step">
+      <div class="step-text"><strong>Üben</strong><span id="step-practice"></span></div>
+      <button id="verb-practice" class="step-go"></button>
+    </li>
+    <li class="step">
+      <div class="step-text"><strong>Abschlusstest</strong><span id="step-test"></span><span id="verb-tests" class="step-note"></span></div>
+      <button id="verb-test" class="step-go"></button>
+    </li>
+  </ol>
+  <details class="verb-list"><summary id="verb-list-label">Alle Wörter</summary><div id="verb-list"></div></details>
+</section>
+
+<section id="cheat" class="screen cheat" hidden>
+  <header class="bar">
+    <button class="link" data-to-verbs>‹ Übersicht</button>
+    <span>Cheat-Sheet</span>
+    <span></span>
+  </header>
+  <div class="top"><h1>Finnisch-Baukasten</h1><span class="sub">Präsens, auf einen Blick</span></div>
+
+  <h3>1. Personen &amp; Verb-Endungen</h3>
+  <p>Aus dem Wörterbuch kennst du die Grundform (<b>asua</b>). Für den Satz nimmst du den Stamm (<b>asu-</b>) und hängst die Endung an.</p>
+  <table>
+    <thead><tr><th>Pronomen</th><th>Deutsch</th><th>Endung</th><th>asua (wohnen)</th></tr></thead>
+    <tbody>
+      <tr><td>minä</td><td>ich</td><td><b>-n</b></td><td>asun</td></tr>
+      <tr><td>sinä</td><td>du</td><td><b>-t</b></td><td>asut</td></tr>
+      <tr><td>hän</td><td>er / sie</td><td><b>Doppelvokal</b></td><td>asuu</td></tr>
+      <tr><td>me</td><td>wir</td><td><b>-mme</b></td><td>asumme</td></tr>
+      <tr><td>te</td><td>ihr / Sie</td><td><b>-tte</b></td><td>asutte</td></tr>
+      <tr><td>he</td><td>sie</td><td><b>-vat / -vät</b></td><td>asuvat</td></tr>
+    </tbody>
+  </table>
+  <p class="note"><b>Sonderfall olla (sein):</b> olen, olet, on, olemme, olette, ovat</p>
+
+  <h3>2. Verneinung</h3>
+  <p>Das Verneinungsverb <b>ei</b> wird konjugiert. Das Hauptverb verliert seine Endung und bleibt im Stamm.</p>
+  <table>
+    <thead><tr><th>Pronomen</th><th>Verneinung</th><th>Hauptverb</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td>minä</td><td><b>en</b></td><td>asu</td><td>ich wohne nicht</td></tr>
+      <tr><td>sinä</td><td><b>et</b></td><td>asu</td><td>du wohnst nicht</td></tr>
+      <tr><td>hän</td><td><b>ei</b></td><td>asu</td><td>er/sie wohnt nicht</td></tr>
+      <tr><td>me</td><td><b>emme</b></td><td>asu</td><td>wir wohnen nicht</td></tr>
+      <tr><td>te</td><td><b>ette</b></td><td>asu</td><td>ihr wohnt nicht</td></tr>
+      <tr><td>he</td><td><b>eivät</b></td><td>asu</td><td>sie wohnen nicht</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3. Fragen stellen</h3>
+  <p>Hänge <b>-ko</b> oder <b>-kö</b> (je nach Vokalharmonie) an das wichtigste Wort, meistens das Verb.</p>
+  <ul><li><b>Asutko?</b> Wohnst du?</li><li><b>Oletko?</b> Bist du?</li></ul>
+
+  <h3>4. Orts-Fälle</h3>
+  <p>Die Endung kommt an den Nomen-Stamm.</p>
+  <table>
+    <thead><tr><th>Endung</th><th>Bedeutung</th><th>Beispiel</th></tr></thead>
+    <tbody>
+      <tr><td><b>-ssa / -ssä</b></td><td>in (wo?)</td><td>kahvilassa (im Café)</td></tr>
+      <tr><td><b>-sta / -stä</b></td><td>aus (woher?)</td><td>kahvilasta (aus dem Café)</td></tr>
+      <tr><td><b>-lla / -llä</b></td><td>auf / an (wo?)</td><td>pöydällä (auf dem Tisch)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5. Objekte (wen oder was?)</h3>
+  <ul>
+    <li><b>Akkusativ (-n)</b> für ein ganzes, bestimmtes Objekt: <i>Juon kahvin.</i> Ich trinke den Kaffee.</li>
+    <li><b>Partitiv (-a / -ä)</b> für unbestimmte Mengen, nach Zahlen und immer bei Verneinung: <i>En juo kahvia.</i> Ich trinke keinen Kaffee.</li>
+  </ul>
+</section>
+
+<section id="conj" class="screen" hidden>
+  <header class="bar">
+    <button id="conj-back" class="link">‹ Übersicht</button>
+    <span id="conj-mode"></span>
+    <span id="conj-progress" class="counts"></span>
+  </header>
+  <main class="card conj-card">
+    <div id="conj-meta" class="meta"></div>
+    <div id="conj-inf" class="side"></div>
+    <div id="conj-de" class="conj-de"></div>
+    <form id="conj-form" class="conj-form" autocomplete="off"></form>
+    <div class="accents" aria-label="Sonderzeichen"><button type="button" tabindex="-1">ä</button><button type="button" tabindex="-1">ö</button><button type="button" tabindex="-1">å</button></div>
+    <p id="conj-verdict" class="verdict conj-verdict" aria-live="polite"></p>
+  </main>
+  <footer class="actions">
+    <button id="conj-go" class="primary">Prüfen</button>
+  </footer>
+</section>
+
+<section id="conj-done" class="screen" hidden>
+  <header class="bar">
+    <button class="link" data-to-verbs>‹ Übersicht</button>
+    <span></span><span></span>
+  </header>
+  <main class="center">
+    <h2 id="conj-done-title"></h2>
+    <p id="conj-done-text" class="quiet"></p>
+    <div id="conj-done-list" class="chips"></div>
+    <button id="conj-done-next" class="primary wide"></button>
+  </main>
+</section>
+<p id="storage-status" class="storage-status" role="status">Fortschritt wird nur in diesem Browser gespeichert.</p>
+</body>
+</html>

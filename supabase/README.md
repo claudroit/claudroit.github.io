@@ -1,6 +1,6 @@
 # French accounts and verified competitions
 
-Only `/französisch/` uses this backend. The original `/verben/` and `/adjectifs/` files remain unchanged.
+The `/französisch/` portal has been removed. The SQL below is retained as historical backend documentation; no current trainer uses it. Existing remote accounts and data have not been deleted. `/english/` shares sets with self-contained links and does not require Supabase. `/verben/` and `/adjectifs/` continue saving locally.
 
 ## One-time project setup
 

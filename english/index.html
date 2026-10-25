@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Englisch · Deine Lernsets</title>
+<link rel="stylesheet" href="../adjectifs/style.css"><link rel="stylesheet" href="style.css">
+<script defer src="data.js"></script><script defer src="core.js"></script><script defer src="sets.js"></script><script defer src="app.js"></script>
+</head><body>
+<nav class="site-nav" aria-label="Fächer"><a href="../verben/">Verben</a><a href="../adjectifs/">Adjektive</a><a href="./" aria-current="page">Englisch</a></nav>
+<main id="sets" class="screen">
+<header class="page-heading"><div><p class="quiet">Dein Wortschatz, dein Tempo.</p><h1>Deine Lernsets</h1></div><button id="new-set" class="primary">+ Set erstellen</button></header>
+<button id="resume-draft" class="draft-banner" hidden>Entwurf weiterbearbeiten</button><div id="sets-list"></div>
+<section class="starter"><h2>Schon Wörter parat?</h2><p>Erstelle eigene Karten oder kopiere zwei Spalten aus Excel. Dein Lernfortschritt bleibt in diesem Browser.</p><a href="#add=excel-vocabulary">Die 358 Excel-Vokabeln hinzufügen</a></section>
+</main>
+<main id="home" class="screen" hidden>
+<header class="bar"><button id="all-sets" class="link">‹ Lernsets</button><span>Englisch</span><span>DE → EN</span></header>
+<div class="page-heading"><div><h1 id="set-title"></h1><p id="set-description" class="quiet"></p><span class="sub" id="deck-description"></span></div><div class="toolbar"><button id="edit-set">Bearbeiten</button><button id="share-set">Teilen</button></div></div>
+<div id="summary" class="verb-summary"></div>
+<ol class="steps-list">
+<li class="step"><div class="step-text"><strong>Erster Durchgang</strong><span>Deutsch → Englisch. Alle Wörter einmal kennenlernen.</span></div><button id="first" class="step-go">Starten</button></li>
+<li class="step"><div class="step-text"><strong>Üben</strong><span>Nur „Lernen“. Zweimal hintereinander richtig, dann sitzt es.</span></div><button id="practice" class="step-go">Üben</button></li>
+<li class="step"><div class="step-text"><strong>Abschlusstest</strong><span>Alle Wörter gemischt. Fehler kommen zurück zu „Lernen“.</span><span id="tests" class="step-note"></span></div><button id="test" class="step-go">Test starten</button></li>
+</ol>
+<section class="extra-modes"><div><h2>Frei üben</h2><p>Alle Wörter in zufälliger Reihenfolge. Je zweimal richtig. Eigener Fortschritt, unabhängig vom Lernplan.</p><label for="free-direction">Lernrichtung</label><select id="free-direction"><option value="de">Deutsch → Englisch</option><option value="mixed">Gemischt: DE ↔ EN</option></select><p id="free-note" class="small quiet"></p><button id="free-start" class="primary">Frei üben</button></div><div><h2>Karteikarten</h2><p>Umblättern, umdrehen, merken. Ohne Bewertung.</p><label class="check-label"><input id="flash-marked" type="checkbox"> Nur markierte Wörter</label><button id="flash-start">Karten öffnen</button></div></section>
+<details class="verb-list"><summary id="library-title">Alle Vokabeln</summary><div class="toolbar"><input id="library-search" class="conj-input" type="search" aria-label="Vokabeln suchen" placeholder="Deutsch oder Englisch suchen …"><label class="check-label"><input id="library-marked" type="checkbox"> Nur markierte</label></div><div id="library"></div></details>
+</main>
+<main id="editor" class="screen" hidden>
+<header class="page-heading sticky"><button id="editor-back" class="link">‹ Lernsets</button><p id="draft-status" role="status">Entwurf gespeichert</p><div class="toolbar"><button id="save-set">Speichern</button><button id="save-study" class="primary">Speichern & lernen</button></div></header>
+<h1 id="editor-heading">Neues Lernset</h1><p class="quiet">Ein Wortpaar pro Karte. Dein Entwurf wird während der Eingabe gespeichert.</p>
+<label for="draft-title">Titel</label><input id="draft-title" maxlength="160" placeholder="Zum Beispiel: Englisch – Kapitel 3">
+<label for="draft-description">Beschreibung <span class="quiet">(optional)</span></label><textarea id="draft-description" maxlength="3000" rows="2" placeholder="Worum geht es in diesem Set?"></textarea>
+<div class="toolbar editor-tools"><button id="import-open">+ Importieren</button><span class="quiet">Alternative Antworten mit | trennen</span></div>
+<section id="import-panel" hidden><h2>Wortpaare importieren</h2><p>Kopiere zwei Spalten aus Excel, füge Text ein oder öffne eine CSV-, TSV- oder JSON-Datei. Bestehende Karten bleiben erhalten.</p><input id="import-file" type="file" accept=".csv,.tsv,.txt,.json" aria-label="Datei importieren"><div class="toolbar"><label>Spaltenreihenfolge<select id="import-order"><option value="de">Deutsch, Englisch</option><option value="en">Englisch, Deutsch</option></select></label><label>Trennzeichen<select id="import-delimiter"><option value="tab">Tabulator (Excel)</option><option value=",">Komma (CSV)</option><option value=";">Semikolon</option></select></label></div><textarea id="import-text" rows="6" aria-label="Importtext" placeholder="Haus&#9;house&#10;Baum&#9;tree"></textarea><button id="import-apply">Wortpaare hinzufügen</button><p id="import-message" role="status"></p></section>
+<div id="editor-rows"></div><button id="add-row" class="add-row">+ Karte hinzufügen</button><p id="editor-message" role="status"></p>
+</main>
+<section id="study" class="screen" hidden aria-label="Vokabeln üben">
+<header class="bar"><button id="back" class="link">‹ Übersicht</button><span id="run-kind"></span><span id="progress" class="counts"></span></header>
+<main class="card"><div class="prompt-toolbar"><span id="direction-label" class="meta">Deutsch → Englisch</span><button id="mark-word" class="mark" aria-pressed="false">☆ Markieren</button></div><div id="prompt" class="side"></div>
+<form id="answer-form" class="conj-form" autocomplete="off"><label id="answer-label" for="answer">Auf Englisch</label><input id="answer" class="conj-input" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-describedby="verdict correction"></form>
+<p id="verdict" class="verdict conj-verdict" role="status"></p><p id="correction"></p><button id="override" hidden>Ich hatte das richtig</button></main><footer class="actions"><button id="go" class="primary">Prüfen</button></footer>
+</section>
+<section id="done" class="screen" hidden><header class="bar"><button id="done-back" class="link">‹ Übersicht</button><span></span><span></span></header><main class="center"><h2 id="done-title"></h2><p id="done-text" class="quiet"></p><div id="done-list" class="chips"></div><button id="done-next" class="primary wide"></button></main></section>
+<section id="flash" class="screen" hidden><header class="bar"><button id="flash-back" class="link">‹ Übersicht</button><span>Karteikarten</span><span id="flash-progress"></span></header><div class="prompt-toolbar"><span id="flash-side">Deutsch</span><button id="flash-mark" class="mark" aria-pressed="false">☆ Markieren</button></div><button id="flash-card" class="flash-card" aria-label="Karte umdrehen"><span id="flash-text"></span><small>Tippen zum Umdrehen</small></button><div class="flash-actions"><button id="flash-prev">← Zurück</button><button id="flash-shuffle">Mischen</button><button id="flash-next">Weiter →</button></div></section>
+<dialog id="share-dialog"><form method="dialog"><button class="close-dialog" aria-label="Schließen">×</button></form><h2>Set teilen</h2><p>Wer den Link hat, kann eine eigene Kopie speichern. Spätere Änderungen bleiben in deiner Kopie.</p><label class="check-label"><input id="share-progress" type="checkbox"> Meinen Lernfortschritt und Markierungen mitgeben</label><button id="make-link" class="primary">Freigabelink erstellen</button><textarea id="share-url" rows="3" readonly aria-label="Freigabelink" hidden></textarea><div class="toolbar"><button id="copy-link" hidden>Link kopieren</button><button id="export-set">Als JSON herunterladen</button></div><p id="share-status" role="status"></p></dialog>
+<dialog id="import-dialog"><h2 id="shared-title"></h2><p id="shared-info"></p><p>Du speicherst eine eigene Kopie in diesem Browser. Bestehende Sets und Spielstände werden nicht überschrieben.</p><div class="toolbar"><button id="shared-cancel">Abbrechen</button><button id="shared-save" class="primary">Set speichern</button></div></dialog>
+<p id="storage-status" class="storage-status" role="status">Sets, Entwürfe und Fortschritt werden in diesem Browser gespeichert.</p><noscript>Bitte aktiviere JavaScript.</noscript>
+</body></html>

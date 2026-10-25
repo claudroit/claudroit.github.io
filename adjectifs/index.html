@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Adjectifs · Adjektive lernen</title><link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../shared/word-marks.css"><script defer src="../shared/word-marks.js"></script>
 <script defer src="data.js"></script><script defer src="core.js"></script><script defer src="app.js"></script></head>
 <body>
 <section id="home" class="screen">
@@ -15,11 +16,12 @@
 <li class="step"><div class="step-text"><strong>Üben</strong><span>Nur die Adjektive unter „Lernen“. Zweimal alles richtig, dann sitzt es.</span></div><button id="practice" class="step-go"></button></li>
 <li class="step"><div class="step-text"><strong>Abschlusstest</strong><span>Alle Adjektive gemischt. Fehler kommen zurück zu „Lernen“.</span><span id="tests" class="step-note"></span></div><button id="test" class="step-go"></button></li>
 </ol>
-<details class="verb-list"><summary id="library-title">Alle Adjektive & Formen</summary><label for="library-search" class="visually-hidden">Adjektive suchen</label><input id="library-search" class="conj-input" type="search" placeholder="Französisch oder Deutsch suchen …"><div id="library"></div></details>
+<details class="verb-list"><summary id="library-title">Alle Adjektive & Formen</summary><label class="mark-filter"><input id="marked-only" type="checkbox"> Nur markierte Adjektive</label><label for="library-search" class="visually-hidden">Adjektive suchen</label><input id="library-search" class="conj-input" type="search" placeholder="Französisch oder Deutsch suchen …"><div id="library"></div></details>
 </section>
 <section id="study" class="screen" hidden>
 <header class="bar"><button id="back" class="link">‹ Adjektive</button><span id="run-kind"></span><span id="progress" class="counts"></span></header>
 <main class="card conj-card"><div id="prompt-meta" class="meta"></div><div id="prompt" class="side" lang="fr"></div><p id="hint" class="conj-de"></p>
+<button id="mark-current" class="word-mark" type="button" aria-pressed="false">☆ Markieren</button>
 <form id="answer-form" class="conj-form" autocomplete="off"></form>
 <div class="accents" aria-label="Sonderzeichen"><button type="button" tabindex="-1">é</button><button type="button" tabindex="-1">è</button><button type="button" tabindex="-1">ê</button><button type="button" tabindex="-1">ë</button><button type="button" tabindex="-1">à</button><button type="button" tabindex="-1">â</button><button type="button" tabindex="-1">î</button><button type="button" tabindex="-1">ï</button><button type="button" tabindex="-1">ô</button><button type="button" tabindex="-1">û</button><button type="button" tabindex="-1">ù</button><button type="button" tabindex="-1">ü</button><button type="button" tabindex="-1">ç</button><button type="button" tabindex="-1">œ</button><button type="button" tabindex="-1">ä</button><button type="button" tabindex="-1">ö</button><button type="button" tabindex="-1">ß</button></div>
 <p id="verdict" class="verdict conj-verdict" aria-live="polite"></p><p id="answer-note" hidden></p>

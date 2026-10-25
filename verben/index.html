@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>100 Verben</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../shared/word-marks.css">
+<script defer src="../shared/word-marks.js"></script>
 <script defer src="verbs-data.js"></script>
 <script defer src="typing.js"></script>
 <script defer src="verbs.js"></script>
@@ -42,7 +44,7 @@
       <button id="verb-test" class="step-go"></button>
     </li>
   </ol>
-  <details class="verb-list"><summary id="verb-list-label">Alle Verben</summary><div id="verb-list"></div></details>
+  <details class="verb-list"><summary id="verb-list-label">Alle Verben</summary><label class="mark-filter"><input id="marked-only" type="checkbox"> Nur markierte Verben</label><div id="verb-list"></div></details>
 </section>
 
 <section id="conj" class="screen" hidden>
@@ -55,6 +57,7 @@
     <div id="conj-meta" class="meta"></div>
     <div id="conj-inf" class="side"></div>
     <div id="conj-de" class="conj-de"></div>
+    <button id="mark-current" class="word-mark" type="button" aria-pressed="false">☆ Markieren</button>
     <form id="conj-form" class="conj-form" autocomplete="off"></form>
     <div class="accents" aria-label="Sonderzeichen"><button type="button" tabindex="-1">é</button><button type="button" tabindex="-1">è</button><button type="button" tabindex="-1">ê</button><button type="button" tabindex="-1">ë</button><button type="button" tabindex="-1">à</button><button type="button" tabindex="-1">â</button><button type="button" tabindex="-1">î</button><button type="button" tabindex="-1">ï</button><button type="button" tabindex="-1">ô</button><button type="button" tabindex="-1">û</button><button type="button" tabindex="-1">ù</button><button type="button" tabindex="-1">ü</button><button type="button" tabindex="-1">ç</button><button type="button" tabindex="-1">œ</button></div>
     <p id="conj-verdict" class="verdict conj-verdict" aria-live="polite"></p>

@@ -38,6 +38,10 @@ function initVerbs({ $, getState, save, show }) {
   // ---------- one verb on screen ----------
   let session = null;      // { kind: 'first' | 'practice' | 'test', queue: [inf], i, total }
   let verb = null, checked = false;
+  const marks = createWordMarks('verben-word-marks-v1', () => {
+    if (verb) marks.render($('#mark-current'), verb.inf);
+    if (!$('#verbs').hidden) openVerbs();
+  });
 
   function label(v, p) {
     const forms = v.forms[p];
@@ -51,6 +55,7 @@ function initVerbs({ $, getState, save, show }) {
 
   function askVerb(v) {
     verb = v; checked = false;
+    marks.render($('#mark-current'), v.inf);
     const k = session.kind;
     $('#conj-mode').textContent = k === 'first' ? 'Erster Durchgang' : k === 'practice' ? 'Üben' : 'Abschlusstest';
     $('#conj-progress').textContent = k === 'practice' ? `noch ${session.queue.length - session.i}` : `${session.i + 1}/${session.total}`;
@@ -234,10 +239,16 @@ function initVerbs({ $, getState, save, show }) {
     $('#verb-test').classList.toggle('primary', st.first.done && !c.lernen);
     const tests = st.tests || [];
     $('#verb-tests').textContent = tests.length ? 'Bisher: ' + tests.slice(-4).map(t => `${t.s}/${t.of} (${dateFmt.format(t.t)})`).join(' · ') : '';
-    $('#verb-list').innerHTML = selectedVerbs().map(v => {
+    const listed = selectedVerbs().filter(v => !$('#marked-only').checked || marks.has(v.inf));
+    $('#verb-list').innerHTML = listed.map(v => {
       const e = st.s[v.inf], cls = e?.k ? 'kann' : e ? 'lernen' : 'offen';
       return `<div class="vrow ${cls}"><span class="vn">${v.n}</span><span class="vinf">${v.inf}</span><span class="vde">${v.de}</span></div>`;
     }).join('');
+    for (const [index, row] of [...$('#verb-list').querySelectorAll('.vrow')].entries()) {
+      const button = document.createElement('button'); button.className = 'word-mark'; button.type = 'button';
+      marks.render(button, listed[index].inf); row.append(button);
+    }
+    if (!listed.length) $('#verb-list').textContent = 'Keine markierten Verben.';
     show('verbs');
   }
 
@@ -248,6 +259,7 @@ function initVerbs({ $, getState, save, show }) {
     save(); openVerbs();
   };
   $('#verb-first').onclick = startFirst;
+  $('#marked-only').onchange = openVerbs;
   for (const b of document.querySelectorAll('#verb-track button')) b.onclick = () => { V().track = b.dataset.track; touch(); openVerbs(); };
   $('#verb-practice').onclick = startPractice;
   $('#verb-test').onclick = startTest;
@@ -266,6 +278,7 @@ function initVerbs({ $, getState, save, show }) {
   });
   addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.closest?.('button')) return;
     const inField = e.target.matches?.('input');
     if (!$('#conj').hidden && checked && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); nextVerb(); }
   });

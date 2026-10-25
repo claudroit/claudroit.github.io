@@ -1,0 +1,6 @@
+.word-mark { border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; align-self: center; margin: 8px 0 16px; font-size: 14px; }
+.word-mark[aria-pressed=true] { color: var(--ink); background: var(--faint); font-weight: 650; }
+.mark-filter { display: flex; align-items: center; gap: 8px; margin: 12px 0; color: var(--soft); font-size: 14px; }
+.vrow .word-mark { margin: 0; padding: 4px 8px; font-size: 12px; }
+.vrow { grid-template-columns: 2.2em 8em minmax(0,1fr) auto; }
+@media(max-width:480px) { .vrow { grid-template-columns: 1.5em minmax(0,1fr) auto; } .vrow .vde { grid-column: 2; grid-row: 2; } .vrow .word-mark { grid-column: 3; grid-row: 1 / span 2; } }

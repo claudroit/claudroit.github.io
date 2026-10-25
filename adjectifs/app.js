@@ -3,6 +3,10 @@ const S = AdjectiveStudy;
 const STORAGE_KEY = 'karteikarten-adjectifs-v1';
 let state = S.freshState(), readable = true;
 const byId = new Map(ADJECTIVES.map(adj => [adj.id, adj]));
+const marks = createWordMarks('adjectifs-word-marks-v1', () => {
+  if (current) marks.render($('#mark-current'), current.id);
+  library();
+});
 const esc = text => String(text).replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
 function storageError(message) {
   $('#storage-status').textContent = message;
@@ -52,12 +56,16 @@ function show(id) {
 function library() {
   const query = $('#library-search').value.trim().toLocaleLowerCase('de');
   const track = state.tracks[state.mode];
-  const list = ADJECTIVES.filter(adj => [adj.id, ...Object.values(adj.forms).flat(), ...adj.de, adj.beforeVowel || ''].some(text => text.toLocaleLowerCase('de').includes(query)));
+  const list = ADJECTIVES.filter(adj => (!$('#marked-only').checked || marks.has(adj.id)) && [adj.id, ...Object.values(adj.forms).flat(), ...adj.de, adj.beforeVowel || ''].some(text => text.toLocaleLowerCase('de').includes(query)));
   $('#library').innerHTML = list.length ? list.map(adj => {
     const status = track.known[adj.id];
     const cls = status?.k ? 'kann' : status ? 'lernen' : '';
     return `<details class="library-entry ${cls}"><summary><strong lang="fr">${esc(adj.id)}</strong><span>${esc(adj.dePrompt)}</span></summary><dl>${Object.entries(S.labels).map(([key,label]) => `<dt>${label}</dt><dd lang="fr">${esc(adj.forms[key].join(' / '))}</dd>`).join('')}${adj.beforeVowel ? `<dt>Maskulin vor Vokal / stummem h</dt><dd lang="fr">${adj.beforeVowel}</dd>` : ''}</dl><p>${esc(adj.group)}${adj.note ? ' · '+esc(adj.note) : ''}</p></details>`;
   }).join('') : '<p class="quiet">Keine Adjektive gefunden.</p>';
+  for (const [index, entry] of [...$('#library').querySelectorAll('.library-entry')].entries()) {
+    const button = document.createElement('button'); button.className = 'word-mark'; button.type = 'button';
+    marks.render(button, list[index].id); entry.append(button);
+  }
 }
 function home() {
   const track = state.tracks[state.mode], c = S.counts(track, ADJECTIVES);
@@ -93,6 +101,7 @@ function start(kind) {
 function ask() {
   if (run.complete) return finish();
   current = byId.get(run.ids[run.i]);
+  marks.render($('#mark-current'), current.id);
   checked = false;
   const base = S.baseFor(run, current);
   answerFields = S.fields(current, run.mode, base);
@@ -164,9 +173,11 @@ $('#answer-form').addEventListener('keydown', event => {
 });
 addEventListener('keydown', event => {
   if (event.metaKey || event.ctrlKey || event.altKey) return;
+  if (event.target.closest?.('button')) return;
   if (!$('#study').hidden && checked && ['Enter',' '].includes(event.key)) { event.preventDefault(); ask(); }
 });
 $('#library-search').oninput = library;
+$('#marked-only').onchange = library;
 addEventListener('focusin', event => { if (event.target.matches?.('.fr-input')) lastField = event.target; });
 for (const button of document.querySelectorAll('.accents button')) {
   button.onpointerdown = event => event.preventDefault();

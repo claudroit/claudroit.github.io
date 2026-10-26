@@ -10,6 +10,10 @@ against the book pages; group `x` = extra words from the vocabulary.xlsx list th
 `check.js` accepts only the book's word (the test allows no synonyms). It ignores labels like (pl), (BE),
 (opp of …), (syn …) and irregular forms in brackets, treats other brackets and sth/sb as optional, and
 ignores capitals and accents. A missing "to" or a hyphen difference is "Fast" and counts as not yet known.
-Typing another card's word says which German word that one belongs to.
+Typing another card's word says which German word that one belongs to. Near misses show a letter-by-letter comparison.
+
+"Ich hatte es richtig" (after a wrong answer) undoes it, counts it as right, and remembers that answer for the word (`accepted` in the saved state), so it's right from then on.
+
+index.html links its files with `?v=N`. Raise N with every change, or browsers can mix the new page with cached old scripts.
 
 Run `node english/tests.cjs` from the repository root.

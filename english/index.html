@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Englisch · Unit 1</title>
-<link rel="stylesheet" href="style.css?v=3">
-<script defer src="words-data.js?v=3"></script>
-<script defer src="check.js?v=3"></script>
-<script defer src="trainer.js?v=3"></script>
-<script defer src="app.js?v=3"></script>
+<link rel="stylesheet" href="style.css?v=5">
+<script defer src="words-data.js?v=5"></script>
+<script defer src="check.js?v=5"></script>
+<script defer src="trainer.js?v=5"></script>
+<script defer src="app.js?v=5"></script>
 </head>
 <body>
 <section id="words" class="screen" hidden>
@@ -43,7 +43,11 @@
       <button id="go-test" class="step-go"></button>
     </li>
   </ol>
-  <details class="verb-list"><summary id="list-label">Alle Wörter</summary><div id="word-list"></div></details>
+  <details class="verb-list"><summary id="list-label">Alle Wörter</summary>
+    <label for="list-search" class="visually-hidden">Wörter suchen</label>
+    <input id="list-search" class="conj-input list-search" type="search" placeholder="Englisch oder Deutsch suchen …" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div id="word-list"></div>
+  </details>
 </section>
 
 <section id="ask" class="screen" hidden>
@@ -52,6 +56,7 @@
     <span id="ask-mode"></span>
     <span id="ask-progress" class="counts"></span>
   </header>
+  <div class="ask-track" aria-hidden="true"><div id="ask-bar" class="ask-bar"></div></div>
   <main class="card conj-card">
     <div id="ask-meta" class="meta"></div>
     <div id="ask-de" class="side" lang="de"></div>
@@ -60,10 +65,17 @@
       <input id="ask-input" class="conj-input en-input" lang="en" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Auf Englisch …">
     </form>
     <p id="ask-verdict" class="verdict conj-verdict" aria-live="polite"></p>
-    <p id="ask-answer" class="en-answer" lang="en" hidden></p>
-    <p id="ask-other" class="en-other" hidden></p>
+    <div id="ask-result" class="en-result" hidden>
+      <div id="ask-diff" class="diff" hidden>
+        <span class="who">Du</span><span id="diff-typed" class="line" lang="en"></span>
+        <span class="who">Buch</span><span id="diff-book" class="line" lang="en"></span>
+      </div>
+      <p id="ask-answer" class="en-answer" lang="en"></p>
+      <p id="ask-other" class="en-other" hidden></p>
+    </div>
   </main>
   <footer class="actions">
+    <button id="ask-override" class="link small override" type="button" hidden>Ich hatte es richtig</button>
     <button id="ask-go" class="primary">Prüfen</button>
   </footer>
 </section>

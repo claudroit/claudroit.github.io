@@ -39,12 +39,15 @@ function initWords({ $, getState, save, show }) {
     const k = session.kind;
     $('#ask-mode').textContent = k === 'first' ? 'Erster Durchgang' : k === 'practice' ? 'Üben' : 'Abschlusstest';
     $('#ask-progress').textContent = k === 'practice' ? `noch ${session.queue.length - session.i}` : `${session.i + 1}/${session.total}`;
+    const done = k === 'practice' ? session.i / Math.max(1, session.queue.length) : session.i / Math.max(1, session.total);
+    $('#ask-bar').style.width = `${Math.round(done * 1000) / 10}%`;
     $('#ask-meta').textContent = `${w.group === 'x' ? 'Weitere Wörter' : w.group} · ${w.section}`;
     $('#ask-de').textContent = w.de;
     const input = $('#ask-input');
     input.value = ''; input.readOnly = false; input.dataset.result = '';
     $('#ask-verdict').textContent = ''; $('#ask-verdict').dataset.result = '';
-    $('#ask-answer').hidden = true; $('#ask-other').hidden = true;
+    $('#ask-result').hidden = true; $('#ask-other').hidden = true; $('#ask-diff').hidden = true;
+    $('#ask-override').hidden = true;
     $('#ask-go').textContent = 'Prüfen';
     show('ask');
     input.focus();
@@ -55,19 +58,46 @@ function initWords({ $, getState, save, show }) {
     if (!word || checked) return;
     checked = true;
     const input = $('#ask-input');
-    const r = checkEn(word, input.value, (sameDe.get(word.de) || []).filter(x => x !== word), WORDS);
+    // answers you counted as right before ("Ich hatte es richtig") are right from then on
+    const mine = (getState().accepted?.[word.id] || []).includes(normalizeEn(input.value));
+    const r = mine ? { result: 'right' } : checkEn(word, input.value, (sameDe.get(word.de) || []).filter(x => x !== word), WORDS);
     const perfect = r.result === 'right';
     input.readOnly = true; input.blur();
     input.dataset.result = perfect ? 'right' : 'wrong';
     $('#ask-verdict').dataset.result = perfect ? 'right' : 'wrong';
     $('#ask-verdict').textContent = VERDICT[r.result];
     $('#ask-answer').textContent = shownEn(word.en);
-    $('#ask-answer').hidden = false;
+    $('#ask-result').hidden = false;
+    // close misses: show letter by letter what was wrong (red) and what was missing (underlined)
+    const diff = !perfect && input.value.trim() && r.closest && (r.result !== 'wrong' || r.close) ? letterDiffEn(normalizeEn(input.value), r.closest) : null;
+    $('#ask-diff').hidden = !diff;
+    if (diff) { $('#diff-typed').innerHTML = marked(diff.typed); $('#diff-book').innerHTML = marked(diff.answer); }
+    $('#ask-override').hidden = perfect || !input.value.trim();
+    snapshot = perfect ? null : { scope: JSON.stringify(S()), queue: [...session.queue], typed: normalizeEn(input.value) };
     // the test wants this card's word: say so when the typed word is another one from the book
     $('#ask-other').hidden = !r.other;
     if (r.other) $('#ask-other').innerHTML = `„${esc(shownEn(r.other.en))}“ ist im Buch: ${esc(r.other.de)}`;
     $('#ask-go').textContent = 'Weiter';
     record(perfect);
+  }
+
+  const marked = parts => parts.map(p => `<span${p.ok ? '' : ' class="off"'}>${p.c === ' ' ? '&nbsp;' : esc(p.c)}</span>`).join('');
+
+  // "Ich hatte es richtig": undo what the wrong answer did, count it as right, and accept that answer from now on
+  let snapshot = null;
+  function override() {
+    if (!checked || !snapshot) return;
+    const st = getState();
+    st.scopes[scope()] = JSON.parse(snapshot.scope);
+    session.queue = snapshot.queue;
+    st.accepted ||= {};
+    st.accepted[word.id] = [...new Set([...(st.accepted[word.id] || []), snapshot.typed])];
+    snapshot = null;
+    record(true);
+    $('#ask-input').dataset.result = 'right';
+    $('#ask-verdict').dataset.result = 'right';
+    $('#ask-verdict').textContent = 'Als richtig gezählt';
+    $('#ask-diff').hidden = true; $('#ask-other').hidden = true; $('#ask-override').hidden = true;
   }
 
   // ---------- the three runs ----------
@@ -168,10 +198,10 @@ function initWords({ $, getState, save, show }) {
     for (const b of document.querySelectorAll('#scope button')) b.setAttribute('aria-pressed', b.dataset.scope === scope());
     $('#scope-note').textContent = `${SCOPES[scope()].note} ${count} Wörter.`;
     $('#list-label').textContent = SCOPES[scope()].list;
-    $('#step-first').textContent = `Alle ${count} Wörter einmal in Buchreihenfolge: Du siehst das Deutsche und schreibst das englische Wort aus dem Buch. Richtig kommt zu „Kann ich“, der Rest zu „Üben“.`;
+    $('#step-first').textContent = `Alle ${count} Wörter einmal, in Buchreihenfolge. Richtig kommt zu „Kann ich“, der Rest zu „Üben“.`;
     $('#step-practice').textContent = 'Nur die Wörter unter „Üben“. Ein Wort sitzt, wenn du es zweimal richtig geschrieben hast.';
     $('#step-test').textContent = `Alle ${count} Wörter gemischt, wie im Test. Fehler kommen zurück zu „Üben“.`;
-    $('#summary').innerHTML = `<span><b>${c.kann}</b>kann ich</span><span><b>${c.lernen}</b>üben</span><span><b>${c.offen}</b>noch offen</span>`;
+    $('#summary').innerHTML = `<span><b${c.kann ? ' class="good"' : ''}>${c.kann}</b>kann ich</span><span><b${c.lernen ? ' class="bad"' : ''}>${c.lernen}</b>üben</span><span><b>${c.offen}</b>noch offen</span>`;
     $('#go-first').textContent = st.first.done ? 'Nochmal von vorn' : st.first.i ? `Weiter (${st.first.i}/${count})` : 'Starten';
     $('#go-first').classList.toggle('primary', !st.first.done);
     $('#skip-first').hidden = st.first.done;
@@ -182,15 +212,29 @@ function initWords({ $, getState, save, show }) {
     $('#go-test').classList.toggle('primary', st.first.done && !c.lernen);
     const tests = st.tests || [];
     $('#tests').textContent = tests.length ? 'Bisher: ' + tests.slice(-4).map(t => `${t.s}/${t.of} (${dateFmt.format(t.t)})`).join(' · ') : '';
-    $('#word-list').innerHTML = selected().map(w => {
-      const e = st.s[w.id], cls = e?.k ? 'kann' : e ? 'lernen' : 'offen';
-      return `<div class="vrow wrow ${cls}"><span class="vn">${w.n}</span><span class="vinf" lang="en">${esc(w.en)}</span><span class="vde">${esc(w.de)}</span></div>`;
-    }).join('');
+    renderList();
     session = null; word = null;
     show('words');
   }
 
+  // the word list: grouped by the book's sections, searchable in both languages
+  const fold = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  function renderList() {
+    const st = S(), q = fold($('#list-search').value.trim());
+    const shown = selected().filter(w => !q || fold(w.en).includes(q) || fold(w.de).includes(q));
+    let section = '', html = '';
+    for (const w of shown) {
+      const head = `${w.group === 'x' ? '' : w.group + ' · '}${w.section}`;
+      if (head !== section) { section = head; html += `<h3 class="wsec">${esc(head)}</h3>`; }
+      const e = st.s[w.id], cls = e?.k ? 'kann' : e ? 'lernen' : 'offen';
+      html += `<div class="vrow wrow ${cls}"><span class="vn">${w.n}</span><span class="vinf" lang="en">${esc(w.en)}</span><span class="vde">${esc(w.de)}</span></div>`;
+    }
+    $('#word-list').innerHTML = html || '<p class="quiet small">Kein Wort gefunden.</p>';
+  }
+
   // ---------- wiring ----------
+  $('#list-search').oninput = renderList;
+  $('#ask-override').onclick = override;
   for (const b of document.querySelectorAll('#scope button')) b.onclick = () => { getState().scope = b.dataset.scope; save(); open(); };
   $('#go-first').onclick = startFirst;
   $('#skip-first').onclick = skipFirst;

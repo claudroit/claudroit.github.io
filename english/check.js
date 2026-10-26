@@ -86,3 +86,20 @@ function checkEn(note, typedRaw, others = [], all = []) {
   const close = distanceEn(typed, closest) <= Math.max(2, Math.ceil(closest.length * 0.4));
   return { result: 'wrong', closest, other, close };
 }
+
+// letter-by-letter comparison (from Karteikarten): which typed letters are wrong, which book letters are missing
+function letterDiffEn(typed, answer) {
+  const a = [...typed], b = [...answer];
+  const L = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--) {
+    L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  }
+  const ta = [], tb = [];
+  let i = 0, j = 0;
+  while (i < a.length || j < b.length) {
+    if (i < a.length && j < b.length && a[i] === b[j]) { ta.push({ c: a[i++], ok: true }); tb.push({ c: b[j++], ok: true }); }
+    else if (j < b.length && (i >= a.length || L[i][j + 1] >= L[i + 1][j])) tb.push({ c: b[j++], ok: false });
+    else ta.push({ c: a[i++], ok: false });
+  }
+  return { typed: ta, answer: tb };
+}

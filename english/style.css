@@ -155,14 +155,26 @@ h2 { font-size: 22px; font-weight: 650; margin: 0 0 4px; }
 .storage-status[data-error="true"] { color: var(--bad); }
 
 /* English: one answer field, the book's word underneath */
+.ask-track { height: 3px; background: var(--faint); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+.ask-bar { height: 100%; width: 0; background: var(--ink); opacity: 0.55; border-radius: 2px; transition: width 0.25s ease; }
 .en-form { margin-top: 22px; }
 .en-input { width: 100%; text-align: center; font-size: 19px; padding: 12px; }
-.en-input[data-result="wrong"] { color: var(--bad); text-decoration: line-through; }
-.en-input[data-result="right"] { color: var(--good); }
-.en-answer { margin: 4px 0 0; font-size: 22px; font-weight: 600; color: var(--good); overflow-wrap: anywhere; }
-.en-other { margin: 8px auto 0; color: var(--soft); font-size: 14px; max-width: 30em; }
+.en-input[data-result="wrong"] { color: var(--soft); text-decoration: line-through; }
+.en-input[data-result="right"] { color: var(--good); border-color: var(--good); }
+.en-result { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 4px; }
+.en-result .diff { padding: 10px 14px; border-radius: 10px; background: var(--faint); }
+#diff-typed .off { color: var(--bad); text-decoration: line-through; text-decoration-thickness: 2px; }
+#diff-book .off { color: var(--good); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.en-answer { margin: 0; font-size: 22px; font-weight: 600; color: var(--good); overflow-wrap: anywhere; }
+.en-other { margin: 0; color: var(--soft); font-size: 14px; max-width: 30em; }
+.override { padding: 8px 16px; border-radius: 10px; background: var(--faint); color: var(--ink); }
 #scope { flex-wrap: wrap; }
-.wrow { grid-template-columns: 2.2em minmax(0, 1fr) minmax(0, 1fr); }
 #scope-note { margin-bottom: 16px; }
 .step-buttons { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
 .step-skip { text-align: center; }
+/* the counters in the colours of the word list */
+#summary b.good { color: var(--good); }
+#summary b.bad { color: var(--bad); }
+.wrow { grid-template-columns: 2.2em minmax(0, 1fr) minmax(0, 1fr); }
+.wsec { font-size: 12px; font-weight: 600; color: var(--soft); letter-spacing: 0.02em; margin: 18px 0 2px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.list-search { margin: 8px 0 4px; font-size: 15px; }

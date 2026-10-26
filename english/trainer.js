@@ -21,7 +21,21 @@ function initWords({ $, getState, save, show }) {
     const st = getState();
     st.scopes ||= {};
     st.scopes[scope()] ||= { s: {}, first: { i: 0, done: false }, run: null, tests: [] };
-    return st.scopes[scope()];
+    const sc = st.scopes[scope()];
+    // the words the first pass did not get right; the final test asks only these
+    if (!sc.miss && sc.first.done) {
+      // progress from before this list existed: best guess is every word not known yet
+      sc.miss = selected().filter(w => sc.s[w.id] && !sc.s[w.id].k).map(w => w.id);
+      if (sc.run && sc.run.order.some(id => !sc.miss.includes(id))) sc.run = null;
+    }
+    sc.miss ||= [];
+    return sc;
+  }
+  // what the final test asks: the first-pass mistakes, or everything if there were none
+  function testIds() {
+    const st = S(), miss = new Set(st.miss);
+    const ids = selected().filter(w => miss.has(w.id)).map(w => w.id);
+    return st.first.done && ids.length ? ids : selected().map(w => w.id);
   }
   function counts() {
     const s = S().s;
@@ -105,6 +119,8 @@ function initWords({ $, getState, save, show }) {
     const st = S(), s = st.s, id = word.id;
     if (session.kind === 'first') {
       s[id] = perfect ? { k: 1 } : { k: 0, st: 0 };
+      st.miss = st.miss.filter(x => x !== id);
+      if (!perfect) st.miss.push(id);
       st.first.i = session.i + 1;
       if (st.first.i >= selected().length) st.first.done = true;
     } else if (session.kind === 'practice') {
@@ -165,14 +181,14 @@ function initWords({ $, getState, save, show }) {
 
   function startFirst() {
     const st = S();
-    if (st.first.done) { st.first = { i: 0, done: false }; for (const w of selected()) delete st.s[w.id]; save(); }
+    if (st.first.done) { st.first = { i: 0, done: false }; st.miss = []; st.run = null; for (const w of selected()) delete st.s[w.id]; save(); }
     session = { kind: 'first', queue: selected().map(w => w.id), i: st.first.i, total: selected().length };
     ask(selected()[session.i]);
   }
   // skip the first pass: what was answered keeps its result, everything not reached yet goes to "Üben"
   function skipFirst() {
     const st = S();
-    for (const w of selected()) if (!st.s[w.id]) st.s[w.id] = { k: 0, st: 0 };
+    for (const w of selected()) if (!st.s[w.id]) { st.s[w.id] = { k: 0, st: 0 }; st.miss.push(w.id); }
     st.first = { i: selected().length, done: true };
     save(); open();
   }
@@ -185,7 +201,7 @@ function initWords({ $, getState, save, show }) {
   }
   function startTest() {
     const st = S();
-    if (!st.run) { st.run = { order: shuffle(selected().map(w => w.id)), i: 0, ok: 0, wrong: [] }; save(); }
+    if (!st.run) { st.run = { order: shuffle(testIds()), i: 0, ok: 0, wrong: [] }; save(); }
     session = { kind: 'test', queue: st.run.order, i: st.run.i, total: st.run.order.length };
     if (session.i >= session.queue.length) return finish();
     ask(byId.get(session.queue[session.i]));
@@ -200,7 +216,10 @@ function initWords({ $, getState, save, show }) {
     $('#list-label').textContent = SCOPES[scope()].list;
     $('#step-first').textContent = `Alle ${count} Wörter einmal, in Buchreihenfolge. Richtig kommt zu „Kann ich“, der Rest zu „Üben“.`;
     $('#step-practice').textContent = 'Nur die Wörter unter „Üben“. Ein Wort sitzt, wenn du es zweimal richtig geschrieben hast.';
-    $('#step-test').textContent = `Alle ${count} Wörter gemischt, wie im Test. Fehler kommen zurück zu „Üben“.`;
+    const nTest = testIds().length;
+    $('#step-test').textContent = nTest < count
+      ? `Nur die ${nTest} Wörter, die im ersten Durchgang falsch waren, gemischt. Fehler kommen zurück zu „Üben“.`
+      : `Alle ${count} Wörter gemischt, wie im Test. Fehler kommen zurück zu „Üben“.`;
     $('#summary').innerHTML = `<span><b${c.kann ? ' class="good"' : ''}>${c.kann}</b>kann ich</span><span><b${c.lernen ? ' class="bad"' : ''}>${c.lernen}</b>üben</span><span><b>${c.offen}</b>noch offen</span>`;
     $('#go-first').textContent = st.first.done ? 'Nochmal von vorn' : st.first.i ? `Weiter (${st.first.i}/${count})` : 'Starten';
     $('#go-first').classList.toggle('primary', !st.first.done);
@@ -208,7 +227,7 @@ function initWords({ $, getState, save, show }) {
     $('#go-practice').textContent = c.lernen ? `${c.lernen} üben` : 'Nichts zu üben';
     $('#go-practice').disabled = !c.lernen;
     $('#go-practice').classList.toggle('primary', st.first.done && c.lernen > 0);
-    $('#go-test').textContent = st.run ? `Weiter (${st.run.i}/${count})` : 'Test starten';
+    $('#go-test').textContent = st.run ? `Weiter (${st.run.i}/${st.run.order.length})` : 'Test starten';
     $('#go-test').classList.toggle('primary', st.first.done && !c.lernen);
     const tests = st.tests || [];
     $('#tests').textContent = tests.length ? 'Bisher: ' + tests.slice(-4).map(t => `${t.s}/${t.of} (${dateFmt.format(t.t)})`).join(' · ') : '';

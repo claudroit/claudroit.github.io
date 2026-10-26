@@ -1,8 +1,9 @@
 // GitHub Pages build only: vocabulary and progress live in a secret gist of the user's,
 // read and written with a token they paste once per device. The public site holds no vocabulary.
-// Gist files: karteikarten-deck.json ({notes, ranges}), karteikarten-grammatik.json ({verbs, adjectives})
+// Gist files: karteikarten-deck.json ({notes, ranges}), karteikarten-grammatik.json ({verbs, adjectives}),
 // and karteikarten-progress.json (the app state).
 // Each device keeps a full copy in localStorage, so it works offline and syncs when it can.
+// "Nur auf diesem Gerät" (kk-mode = local) skips GitHub entirely: the copy in localStorage is all there is.
 
 window.KK_STORAGE = (() => {
   const DECK = 'karteikarten-deck.json', PROGRESS = 'karteikarten-progress.json', GRAMMAR = 'karteikarten-grammatik.json';
@@ -12,7 +13,7 @@ window.KK_STORAGE = (() => {
     set(k, v) { try { localStorage.setItem(k, v); } catch {} },
     del(k) { try { localStorage.removeItem(k); } catch {} },
   };
-  let ctx = null, token = ls.get('kk-token'), gistId = ls.get('kk-gist');
+  let ctx = null, token = ls.get('kk-token'), gistId = ls.get('kk-gist'), localOnly = ls.get('kk-mode') === 'local';
   let etag = null, remote = null, syncing = null, again = false, timer = 0, lastSync = 0, problem = '';
 
   // ---------- GitHub ----------
@@ -78,7 +79,7 @@ window.KK_STORAGE = (() => {
   }
 
   async function syncOnce() {
-    if (!token || !gistId) return;
+    if (localOnly || !token || !gistId) return;
     const res = await gh(`/gists/${gistId}`, { headers: etag ? { 'If-None-Match': etag } : {} });
     if (res.status !== 304) {
       etag = res.etag;
@@ -140,11 +141,45 @@ window.KK_STORAGE = (() => {
             <label class="file-pick" for="setup-file">Startdatei wählen</label>
           </div>
           <p id="setup-error" class="setup-error" role="alert"></p>
+          <div class="setup-local">
+            <h2>Ohne GitHub</h2>
+            <p>Alles bleibt nur in diesem Browser auf diesem Gerät, ohne Synchronisieren. Du kannst später jederzeit noch verbinden.</p>
+            <button type="button" id="setup-local-go" class="file-pick" hidden>Nur auf diesem Gerät nutzen</button>
+            <div id="setup-local-pick" class="setup-import" hidden>
+              <p>Dafür braucht dieses Gerät einmal die Startdatei <code>karteikarten-start.json</code>, weil die Vokabeln nicht öffentlich auf der Website liegen.</p>
+              <input id="setup-local-file" type="file" accept="application/json,.json">
+              <label class="file-pick" for="setup-local-file">Startdatei wählen</label>
+            </div>
+            <p class="quiet small">Tipp: Füge die Seite zum Home-Bildschirm hinzu. Als normale Website kann Safari die Daten löschen, wenn du sie ein paar Wochen nicht öffnest.</p>
+          </div>
         </div>`;
       document.body.prepend(sec);
       for (const el of document.querySelectorAll('.screen')) el.hidden = el !== sec;
       const err = t => { sec.querySelector('#setup-error').textContent = t; };
       const done = () => { sec.remove(); resolve(); };
+
+      // without GitHub: the vocabulary this device already has, or the start file
+      const goLocal = () => {
+        localOnly = true; ls.set('kk-mode', 'local'); ls.del('kk-token'); ls.del('kk-gist'); token = gistId = null;
+        done();
+      };
+      const hasDeck = !!ls.get('kk-deck');
+      sec.querySelector('#setup-local-go').hidden = !hasDeck;
+      sec.querySelector('#setup-local-pick').hidden = hasDeck;
+      sec.querySelector('#setup-local-go').onclick = goLocal;
+      sec.querySelector('#setup-local-file').onchange = async e => {
+        err('');
+        try {
+          const start = JSON.parse(await e.target.files[0].text());
+          if (!start.deck?.notes?.length) throw new Error('file');
+          ls.set('kk-deck', JSON.stringify(start.deck));
+          if (!ls.get('kk-state') && start.progress) ls.set('kk-state', JSON.stringify(start.progress));   // keep progress this device already has
+          if (!ls.get('kk-deck')) throw new Error('storage');
+          goLocal();
+        } catch (x) {
+          err(x.message === 'file' ? 'Das ist nicht die Startdatei von Karteikarten.' : 'Die Datei konnte nicht gespeichert werden. Ist der private Modus an?');
+        }
+      };
 
       sec.querySelector('#setup-form').onsubmit = async e => {
         e.preventDefault();
@@ -206,8 +241,8 @@ window.KK_STORAGE = (() => {
 
   return {
     async load() {
-      if (!token || !gistId) await setupScreen();
-      const deck = await loadDeck();
+      if (!localOnly && (!token || !gistId)) await setupScreen();
+      const deck = localOnly ? JSON.parse(ls.get('kk-deck')) : await loadDeck();
       let saved = null;
       try { saved = JSON.parse(ls.get('kk-state')); } catch {}
       return { ...deck, saved };
@@ -217,8 +252,14 @@ window.KK_STORAGE = (() => {
       // the sync line and a way to disconnect, under the settings on the home screen
       const row = document.createElement('div');
       row.className = 'sync-row';
-      row.innerHTML = '<span id="sync-status">Synchronisiere …</span><button id="sync-forget" class="link small">Trennen</button>';
       document.querySelector('#home .settings').after(row);
+      if (localOnly) {
+        // connecting later keeps this device's progress: the first sync merges it into the gist
+        row.innerHTML = '<span id="sync-status">Nur auf diesem Gerät gespeichert</span><button id="sync-connect" class="link small">Mit GitHub verbinden</button>';
+        row.querySelector('#sync-connect').onclick = () => { ls.del('kk-mode'); location.reload(); };
+        return;
+      }
+      row.innerHTML = '<span id="sync-status">Synchronisiere …</span><button id="sync-forget" class="link small">Trennen</button>';
       row.querySelector('#sync-forget').onclick = () => {
         ls.del('kk-token'); ls.del('kk-gist'); location.reload();
       };
@@ -228,6 +269,7 @@ window.KK_STORAGE = (() => {
     },
     save(state) {
       ls.set('kk-state', JSON.stringify(pick(state)));
+      if (localOnly) return;
       clearTimeout(timer);
       timer = setTimeout(() => { timer = 0; sync(); }, 3000);
     },

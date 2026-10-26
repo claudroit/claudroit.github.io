@@ -1,74 +1,43 @@
-const assert = require('node:assert/strict');
-const study = require('./core.js');
-const words = require('./data.js');
-const word = english => words.find(entry => entry.en === english);
-const accepts = (english, answer) => study.check(word(english), answer, words);
-
-assert.equal(words.length, 358);
-assert.equal(new Set(words.map(entry => entry.id)).size, 358);
-for (const entry of words) {
-  assert.ok(entry.en && entry.de);
-  for (const answer of study.answers(entry)) assert.ok(study.check(entry, answer, words), entry.en);
-  assert.equal(study.check(entry, '', words), false);
-  assert.equal(study.check(entry, 'definitely not the answer', words), false);
-}
-assert.ok(accepts('values (pl)', 'values'));
-assert.ok(accepts('short-term (opp of long-term)', ' SHORT TERM '));
-assert.equal(accepts('short-term (opp of long-term)', 'long-term'), false);
-assert.ok(accepts('to challenge sth/sb', 'challenge somebody'));
-assert.ok(accepts('to challenge sth/sb', 'challenge something'));
-assert.ok(accepts("to achieve one's full potential", 'achieve one’s full potential'));
-assert.ok(accepts('CEO (Chief Executive Officer)', 'chief executive officer'));
-assert.ok(accepts('repetitive (also monotonous)', 'monotonous'));
-assert.ok(accepts('(work) placement', 'work placement'));
-assert.ok(accepts('gut(s)', 'guts'));
-assert.ok(accepts('self-centred = egocentric', 'egocentric'));
-assert.ok(accepts('covering letter (BE)', 'cover letter'));
-assert.ok(accepts('to be affected (by sth)', 'be affected by something'));
-assert.ok(accepts('to deal with sth', 'deal with something'));
-assert.equal(accepts('to deal with sth', 'dealt'), false);
-assert.equal(accepts('to deal with sth', 'deal'), false);
-
-const sample = words.slice(0, 3);
-let state = study.freshState();
-let run = study.start(state, 'first', sample);
-study.record(state, run, false);
-state = study.restore(JSON.stringify(state), sample);
-run = study.start(state, 'first', sample);
-assert.equal(run.i, 1);
-study.record(state, run, true);
-study.record(state, run, true);
-assert.equal(state.firstDone, true);
-assert.deepEqual(study.counts(state, sample), { known: 2, learning: 1, unseen: 0 });
-run = study.start(state, 'practice', sample);
-study.record(state, run, true);
-assert.equal(run.complete, false);
-study.record(state, run, false);
-assert.equal(state.known[sample[0].id].streak, 0);
-study.record(state, run, true);
-assert.equal(run.complete, false);
-study.record(state, run, true);
-assert.equal(run.complete, true);
-assert.deepEqual(study.counts(state, sample), { known: 3, learning: 0, unseen: 0 });
-run = study.start(state, 'test', sample, () => 0);
-assert.notDeepEqual(run.ids, sample.map(entry => entry.id));
-const failed = run.ids[0];
-study.record(state, run, false);
-study.record(state, run, true);
-study.record(state, run, true, 100);
-assert.deepEqual(state.tests, [{ at: 100, score: 2, total: 3 }]);
-assert.equal(state.known[failed].k, false);
-assert.throws(() => study.record(state, run, true));
-run = study.start(state, 'practice', sample);
-assert.deepEqual(run.ids, [failed]);
-study.record(state, run, true);
-state = study.restore(JSON.stringify(state), sample);
-run = study.start(state, 'practice', sample);
-study.record(state, run, true);
-assert.equal(run.complete, true);
-study.start(state, 'first', sample);
-assert.deepEqual(study.counts(state, sample), { known: 0, learning: 0, unseen: 3 });
-assert.deepEqual(Object.keys(state.runs), ['first']);
-assert.throws(() => study.restore('{}', words));
-assert.throws(() => study.restore('{broken', words));
-console.log('Passed: 358 entries, translation matching, first pass, two-answer practice, test recycling, resume and invalid storage.');
+// Answer rules against every word: node english/tests.cjs
+const fs = require('fs'), path = require('path');
+const WORDS = require('./words-data.js');
+const { checkEn, shownEn } = new Function(fs.readFileSync(path.join(__dirname, 'check.js'), 'utf8') + ';return { checkEn, shownEn };')();
+let bad = 0;
+const ids = new Set(WORDS.map(w => w.id));
+if (ids.size !== WORDS.length) { bad++; console.log('FAIL duplicate ids'); }
+const t = (en, typed, want) => {
+  const w = WORDS.find(x => x.en === en);
+  if (!w) { bad++; return console.log('FAIL missing word', en); }
+  const r = checkEn(w, typed, [], WORDS);
+  if (r.result !== want) { bad++; console.log('FAIL', JSON.stringify(en), JSON.stringify(typed), r.result, 'want', want); }
+};
+for (const w of WORDS) if (checkEn(w, shownEn(w.en), [], WORDS).result !== 'right') { bad++; console.log('FAIL own', w.en); }
+t('to affirm sth', 'to affirm', 'right');
+t('to affirm sth', 'to affirm something', 'right');
+t('to affirm sth', 'affirm', 'noTo');
+t('to affirm sth', 'to confirm', 'wrong');
+t('second-hand', 'second hand', 'dash');
+t('values (pl)', 'Values', 'right');
+t('short-term (opp of long-term)', 'long-term', 'wrong');
+t('repetitive (also monotonous)', 'monotonous', 'right');
+t('to occur (syn to happen)', 'to happen', 'wrong');
+t('(work) placement', 'placement', 'right');
+t('(work) placement', 'work placement', 'right');
+t('CV (Curriculum Vitae) (BE) / resumé (AE)', 'resume', 'right');
+t('covering letter (BE) / cover letter (AE)', 'cover letter', 'right');
+t('to deal (dealt, dealt) with sth', 'to deal with', 'right');
+t("to set (set, set) up one's own business", 'to set up your own business', 'right');
+t('artificial intelligence (AI)', 'AI', 'right');
+t('CEO (Chief Executive Officer)', 'chief executive officer', 'right');
+t('job advert / job advertisement', 'job advertisement', 'right');
+t('gut(s)', 'guts', 'right');
+t('in a good/bad temper', 'in a bad temper', 'right');
+t('property & construction', 'property and construction', 'right');
+t('the ... in question', 'the … in question', 'right');
+t('self-centred = egocentric', 'egocentric', 'right');
+const other = (en, typed, want) => { const w = WORDS.find(x => x.en === en); const r = checkEn(w, typed, [], WORDS); if (r.other?.en !== want) { bad++; console.log('FAIL other', en, typed, r.other?.en); } };
+other('job sector', 'sector', 'sector');
+other('perk', 'benefits', 'benefits (pl)');
+other('(work) placement', 'internship', 'internship');
+console.log(WORDS.length, 'words,', bad ? bad + ' failures' : 'all checks pass');
+process.exit(bad ? 1 : 0);

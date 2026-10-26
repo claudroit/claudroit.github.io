@@ -216,3 +216,6 @@ button:focus-visible, .deck:focus-visible, .game-link:focus-visible { outline: 2
 .verb-track { align-self: flex-start; margin-bottom: 16px; }
 .trans-row { grid-template-columns: 6.6em minmax(0, 1fr) 8em; }
 @media (max-width: 420px) { .trans-row { grid-template-columns: 5.4em minmax(0, 1fr) 6.5em; } }
+
+.setup-local { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.setup-local h2 { font-size: 17px; margin: 0; }

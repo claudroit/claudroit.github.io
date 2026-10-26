@@ -1,6 +1,6 @@
 # Englisch
 
-Unit 1 vocabulary trainer at `/english/`, built like `/verben`: Erster Durchgang → Üben → Abschlusstest,
+Unit 1 vocabulary trainer at `/english/`, built like `/verben`: Erster Durchgang (or Überspringen: every word not answered yet goes to Üben) → Üben → Abschlusstest,
 German → English only. Progress stays in this browser (`english-unit1-v1`), one per chapter choice
 (Alle, 1.1, 1.3, Weitere). No accounts, no syncing.
 

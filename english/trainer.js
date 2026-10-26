@@ -114,7 +114,7 @@ function initWords({ $, getState, save, show }) {
       nextBtn.onclick = c.lernen ? startPractice : startTest;
     } else if (session.kind === 'practice') {
       $('#done-title').textContent = 'Alle Wörter gelernt';
-      $('#done-text').textContent = 'Jedes Wort unter „Lernen“ sitzt jetzt. Zeit für den Abschlusstest.';
+      $('#done-text').textContent = 'Jedes Wort unter „Üben“ sitzt jetzt. Zeit für den Abschlusstest.';
       nextBtn.textContent = 'Abschlusstest starten';
       nextBtn.onclick = startTest;
     } else {
@@ -122,7 +122,7 @@ function initWords({ $, getState, save, show }) {
       st.tests = [...(st.tests || []), { t: Date.now(), s: score, of: run.order.length }].slice(-10);
       $('#done-title').textContent = `${score} von ${run.order.length} richtig`;
       $('#done-text').textContent = run.wrong.length
-        ? `Diese ${run.wrong.length === 1 ? 'kommt' : `${run.wrong.length} kommen`} zurück zu „Lernen“:`
+        ? `Diese ${run.wrong.length === 1 ? 'kommt' : `${run.wrong.length} kommen`} zurück zu „Üben“:`
         : 'Alle Wörter fehlerfrei.';
       list.innerHTML = run.wrong.map(id => `<span class="chip">${esc(shownEn(byId.get(id).en))}</span>`).join('');
       st.run = null;
@@ -138,6 +138,13 @@ function initWords({ $, getState, save, show }) {
     if (st.first.done) { st.first = { i: 0, done: false }; for (const w of selected()) delete st.s[w.id]; save(); }
     session = { kind: 'first', queue: selected().map(w => w.id), i: st.first.i, total: selected().length };
     ask(selected()[session.i]);
+  }
+  // skip the first pass: what was answered keeps its result, everything not reached yet goes to "Üben"
+  function skipFirst() {
+    const st = S();
+    for (const w of selected()) if (!st.s[w.id]) st.s[w.id] = { k: 0, st: 0 };
+    st.first = { i: selected().length, done: true };
+    save(); open();
   }
   function startPractice() {
     const s = S().s;
@@ -161,12 +168,13 @@ function initWords({ $, getState, save, show }) {
     for (const b of document.querySelectorAll('#scope button')) b.setAttribute('aria-pressed', b.dataset.scope === scope());
     $('#scope-note').textContent = `${SCOPES[scope()].note} ${count} Wörter.`;
     $('#list-label').textContent = SCOPES[scope()].list;
-    $('#step-first').textContent = `Alle ${count} Wörter einmal in Buchreihenfolge: Du siehst das Deutsche und schreibst das englische Wort aus dem Buch. Richtig kommt zu „Kann ich“, der Rest zu „Lernen“.`;
-    $('#step-practice').textContent = 'Nur die Wörter unter „Lernen“. Ein Wort sitzt, wenn du es zweimal richtig geschrieben hast.';
-    $('#step-test').textContent = `Alle ${count} Wörter gemischt, wie im Test. Fehler kommen zurück zu „Lernen“.`;
-    $('#summary').innerHTML = `<span><b>${c.kann}</b>kann ich</span><span><b>${c.lernen}</b>lernen</span><span><b>${c.offen}</b>noch offen</span>`;
+    $('#step-first').textContent = `Alle ${count} Wörter einmal in Buchreihenfolge: Du siehst das Deutsche und schreibst das englische Wort aus dem Buch. Richtig kommt zu „Kann ich“, der Rest zu „Üben“.`;
+    $('#step-practice').textContent = 'Nur die Wörter unter „Üben“. Ein Wort sitzt, wenn du es zweimal richtig geschrieben hast.';
+    $('#step-test').textContent = `Alle ${count} Wörter gemischt, wie im Test. Fehler kommen zurück zu „Üben“.`;
+    $('#summary').innerHTML = `<span><b>${c.kann}</b>kann ich</span><span><b>${c.lernen}</b>üben</span><span><b>${c.offen}</b>noch offen</span>`;
     $('#go-first').textContent = st.first.done ? 'Nochmal von vorn' : st.first.i ? `Weiter (${st.first.i}/${count})` : 'Starten';
     $('#go-first').classList.toggle('primary', !st.first.done);
+    $('#skip-first').hidden = st.first.done;
     $('#go-practice').textContent = c.lernen ? `${c.lernen} üben` : 'Nichts zu üben';
     $('#go-practice').disabled = !c.lernen;
     $('#go-practice').classList.toggle('primary', st.first.done && c.lernen > 0);
@@ -185,6 +193,7 @@ function initWords({ $, getState, save, show }) {
   // ---------- wiring ----------
   for (const b of document.querySelectorAll('#scope button')) b.onclick = () => { getState().scope = b.dataset.scope; save(); open(); };
   $('#go-first').onclick = startFirst;
+  $('#skip-first').onclick = skipFirst;
   $('#go-practice').onclick = startPractice;
   $('#go-test').onclick = startTest;
   $('#ask-back').onclick = open;

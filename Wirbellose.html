@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wirbellose – Lernhilfe</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1f2328;--mut:#5d6470;--card:#fff;--line:#e3e0d8;--acc:#2f5d8a;--ext-bg:#fff3d6;--ext-fg:#7a4b00;--src-bg:#e8f0f8;--src-fg:#2f5d8a;--ok:#2e6b3a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181c;--fg:#e6e6e6;--mut:#a0a6b0;--card:#1e2126;--line:#33373e;--acc:#8ab4e0;--ext-bg:#3a2e12;--ext-fg:#f2c46b;--src-bg:#1f2d3d;--src-fg:#9cc3ea;--ok:#7fcf8e}}
+:root[data-theme="dark"]{--bg:#16181c;--fg:#e6e6e6;--mut:#a0a6b0;--card:#1e2126;--line:#33373e;--acc:#8ab4e0;--ext-bg:#3a2e12;--ext-fg:#f2c46b;--src-bg:#1f2d3d;--src-fg:#9cc3ea;--ok:#7fcf8e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+main{max-width:920px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:1.9rem;margin:.2em 0}
+h2{font-size:1.45rem;margin:2.2em 0 .5em;padding-top:.6em;border-top:2px solid var(--line);color:var(--acc)}
+h3{font-size:1.12rem;margin:1.5em 0 .4em}
+p,li{max-width:75ch}
+ul,ol{padding-left:1.3em}
+li{margin:.15em 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.ext{background:var(--ext-bg);color:var(--ext-fg);border-radius:4px;padding:0 5px;font-size:.82em;font-weight:600;white-space:nowrap}
+.src{background:var(--src-bg);color:var(--src-fg);border-radius:4px;padding:0 5px;font-size:.78em;white-space:nowrap}
+.extbox{background:var(--ext-bg);color:var(--fg);border-left:4px solid var(--ext-fg);border-radius:6px;padding:10px 14px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.92rem;margin:10px 0}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--src-bg)}
+.scroll{overflow-x:auto}
+details{margin:8px 0}
+summary{cursor:pointer;color:var(--acc);font-weight:600}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;margin:6px 0;display:block}
+.goal{font-size:.85rem;color:var(--mut);font-style:italic}
+a{color:var(--acc)}
+nav ol{columns:2;column-gap:28px}
+@media (max-width:600px){nav ol{columns:1}}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.flow span{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:.9rem}
+.flow b{color:var(--mut);font-weight:400}
+.sk{border-left:4px solid var(--ok)}
+.sk h3{margin-top:.2em}
+.x{display:none;margin-top:6px;padding:6px 8px;border-radius:6px;background:var(--bg);border-left:3px solid var(--acc);font-size:.9rem;line-height:1.45}
+td.open .x,body.allx .x{display:block}
+.xb{display:inline-block;margin-left:4px;font:inherit;font-size:.72rem;line-height:1.4;padding:0 7px;border:1px solid var(--acc);border-radius:10px;background:transparent;color:var(--acc);cursor:pointer;white-space:nowrap}
+td.open .xb,body.allx .xb{background:var(--acc);color:var(--card)}
+#allx{position:fixed;right:16px;bottom:16px;z-index:5;font:inherit;font-size:.85rem;padding:8px 12px;border-radius:20px;border:1px solid var(--acc);background:var(--card);color:var(--acc);box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer}
+@media print{details{display:block}details>*{display:block}h2{break-before:auto}.noprint,.xb,#allx{display:none}.x{display:block}}
+</style>
+</head>
+<body>
+<main>
+<h1>Wirbellose – Lernhilfe</h1>
+<p>Alles hier stammt aus deinen Unterlagen (Bio-Ordner + die Natura-Seiten 38–51 und 83). Jede Aussage trägt ihre Quelle als kleines blaues Schild, z.&nbsp;B. <span class="src">Natura S.&nbsp;38</span>.</p>
+<p>Was <b>nicht</b> aus deinen Unterlagen kommt (mein Allgemeinwissen oder meine eigene Herleitung), ist <b>immer</b> so markiert: <span class="ext">⚠ nicht aus deinen Unterlagen</span> oder in einem gelben Kasten.</p>
+<p>In den Tabellen hat jede Zelle mit Stichworten einen Knopf <span class="xb" style="cursor:default">Satz</span>. Er klappt die Stichworte als ganzen Satz aus. Unten rechts kannst du alle Sätze auf einmal einblenden.</p>
+
+<div class="card">
+<b>Lernziele (dein Blatt):</b>
+<ol>
+<li>Beispielorganismen und -gruppen kennen: Nesseltiere, Platt-/Rundwürmer, Gliederfüsser</li>
+<li>Physiologie und Lebensweise im Detail</li>
+<li>Lebenszyklus von Nesseltieren (z.&nbsp;B. Ohrenqualle)</li>
+<li>Platt-/Rundwürmer vergleichen (Physiologie, Lebensweise, Besonderheiten)</li>
+<li>Lebenszyklen parasitischer Würmer (z.&nbsp;B. Fuchsbandwurm, kleiner Leberegel)</li>
+<li>Gliederfüsserklassen mit Beispielen kennen und zuordnen</li>
+<li>Besonderheiten der Gruppen kennen, erklären, vergleichen</li>
+<li>Anatomie und Physiologie eines Insekts im Detail</li>
+</ol>
+<b>Bewusst weggelassen</b> (nicht in den Lernzielen): Weinbergschnecke und Muscheln (S.&nbsp;52–53), S.&nbsp;82 (Pflanzen), die Pinguin-Aufgabe auf S.&nbsp;83, Wirbeltiere.
+</div>
+
+<div class="card">
+<b>«Rundwurm» oder «Ringelwurm»?</b> Herr Seifert hat geschrieben: <i>«lernen Sie bitte den Rotwurm, unser liebes Unterrichtsbeispiel»</i>. Der Rotwurm wird in deinen Unterlagen wie der Regenwurm behandelt: Das Praktikumsblatt sagt «Rotwurm» und fragt «Was brauchen die <b>Regenwürmer</b>…?» <span class="src">Praktikum Rotwurm</span>. Darum steht in dieser Lernhilfe der Rotwurm bzw. Regenwurm (= <b>Ringelwurm</b>) an der Stelle der «Rundwürmer».
+<br><br>
+<span class="extbox" style="display:block">⚠ <b>Nicht aus deinen Unterlagen:</b> Der Fachbegriff «Rundwürmer» meint eigentlich die Fadenwürmer (Nematoda), z.&nbsp;B. Spulwurm. Der Rotwurm (Kompostwurm) ist eine Regenwurm-Art, also ein Ringelwurm. Zu den Fadenwürmern hast du keine Unterlagen, und der Lehrer will den Rotwurm. Darum lasse ich die Fadenwürmer weg.</span>
+</div>
+
+<nav class="card noprint"><b>Inhalt</b>
+<ol>
+<li><a href="#ueberblick">Grosser Vergleich aller Gruppen</a></li>
+<li><a href="#nessel">Nesseltiere: Hydra</a></li>
+<li><a href="#qualle">Lebenszyklus Ohrenqualle</a></li>
+<li><a href="#platt">Plattwürmer allgemein</a></li>
+<li><a href="#strudel">Strudelwurm</a></li>
+<li><a href="#leberegel">Kleiner Leberegel (Zyklus)</a></li>
+<li><a href="#band">Bandwürmer: Rinder- und Fuchsbandwurm</a></li>
+<li><a href="#regen">Rotwurm / Regenwurm</a></li>
+<li><a href="#vergleich">Plattwurm ↔ Regenwurm vergleichen</a></li>
+<li><a href="#glieder">Gliederfüsser: Klassen</a></li>
+<li><a href="#insekt">Insekt im Detail (Biene)</a></li>
+<li><a href="#skizzen">Skizzen-Training</a></li>
+<li><a href="#fragen">Übungsfragen</a></li>
+</ol></nav>
+
+<!-- ================= ÜBERBLICK ================= -->
+<h2 id="ueberblick">1. Grosser Vergleich aller Gruppen</h2>
+<p class="goal">Lernziele 1, 4, 7: Besonderheiten kennen, erklären, vergleichen</p>
+<div class="scroll"><table>
+<tr><th></th><th>Nesseltiere<br>(Hydra, Ohrenqualle)</th><th>Plattwürmer<br>(Strudelwurm, Leberegel, Bandwurm)</th><th>Ringelwürmer<br>(Rotwurm, Regenwurm)</th><th>Insekten<br>(Honigbiene)</th></tr>
+<tr><td><b>Keimblätter / Gewebe</b></td><td>2 Zellschichten: Ektoderm + Entoderm, dazwischen zellfreie Stützlamelle <span class="src">Skript Hydra</span><span class="x">Die Körperwand der Hydra besteht nur aus zwei Zellschichten: aussen das Ektoderm (Hautblatt), innen das Entoderm (Darmblatt). Dazwischen liegt die gallertige Stützlamelle, die selbst keine Zellen enthält.</span></td><td>3 Keimblätter (Ekto-, Meso-, Entoderm); Raum dazwischen mit Füllgewebe (Mesenchym) gefüllt <span class="src">AB Strudelwürmer</span><span class="x">Plattwürmer haben drei Keimblätter. Aus dem Ektoderm entsteht die Haut, aus dem Entoderm der Darm und aus dem Mesoderm die Muskeln und das Füllgewebe. Das Füllgewebe füllt den ganzen Raum zwischen Haut und Darm aus.</span></td><td>3 Keimblätter <span class="ext">⚠ Allgemeinwissen</span><span class="x">Wie die Plattwürmer haben auch Ringelwürmer drei Keimblätter. ⚠ Das steht nicht in deinen Unterlagen.</span></td><td>3 Keimblätter <span class="ext">⚠ Allgemeinwissen</span><span class="x">Auch Insekten haben drei Keimblätter. ⚠ Das steht nicht in deinen Unterlagen.</span></td></tr>
+<tr><td><b>Körpergliederung</b></td><td>Polyp oder Qualle <span class="src">Natura S.&nbsp;38</span><span class="x">Nesseltiere kommen in zwei Bauformen vor: als festsitzender Polyp (z.&nbsp;B. Hydra) oder als frei schwimmende, schirmförmige Qualle (z.&nbsp;B. Ohrenqualle).</span></td><td>flach, ungegliedert (Bandwurm: Glieder = Proglottiden)<span class="x">Der Körper ist flach und nicht in Abschnitte gegliedert. Nur der Bandwurm besteht aus vielen Gliedern (Proglottiden), die hinter dem Kopf ständig neu gebildet werden.</span></td><td>viele gleiche Segmente, aussen <b>und</b> innen <span class="src">Natura S.&nbsp;42</span><span class="x">Der Körper besteht aus bis zu 150 fast gleichen Ringen, den Segmenten. Die Gliederung sieht man nicht nur aussen: Auch Blutgefässe, Nervenknoten und Ausscheidungsorgane wiederholen sich in jedem Segment.</span></td><td>Kopf – Brust – Hinterleib; Hinterleib aus Segmenten <span class="src">Natura S.&nbsp;44–45</span><span class="x">Der Körper ist durch deutliche Einkerbungen in drei Abschnitte geteilt: Kopf, Brust und Hinterleib. Der Hinterleib besteht selbst wieder aus ringförmigen Segmenten.</span></td></tr>
+<tr><td><b>Skelett / Stütze</b></td><td>kein Skelett<span class="x">Nesseltiere haben weder ein inneres noch ein äusseres Skelett.</span></td><td>kein Skelett<span class="x">Auch Plattwürmer haben kein Skelett; ihr Körper ist weich.</span></td><td><b>Hydroskelett</b> (Hautmuskelschlauch um Körperflüssigkeit, «wie ein gefüllter Luftballon») <span class="src">Natura S.&nbsp;42</span><span class="x">Der Regenwurm hat kein hartes Skelett. Stattdessen umschliesst der Hautmuskelschlauch (Haut + Ring- und Längsmuskeln) die Körperflüssigkeit. Dadurch wird der Körper stabil wie ein gefüllter Luftballon. Das nennt man Hydroskelett.</span></td><td><b>Aussenskelett aus Chitin</b>; an Gelenken weich <span class="src">Natura S.&nbsp;44</span><span class="x">Insekten sind von einem harten Aussenskelett aus Chitin umgeben, das den Körper schützt und stützt. An den Gelenken bleibt das Chitin weich, damit sich das Tier bewegen kann. Die Muskeln liegen innen. Das Aussenskelett haben alle Gliederfüsser, nicht nur die Insekten.</span></td></tr>
+<tr><td><b>Verdauung</b></td><td>ein Hohlraum (Magen-Darm-Raum / Gastralraum), <b>nur eine Öffnung</b> <span class="src">Natura S.&nbsp;38, Skript</span><span class="x">Die Hydra hat nur einen einzigen Hohlraum, den Magen-Darm-Raum. Er hat nur eine Öffnung, den Mund: Durch ihn kommt die Nahrung hinein, und durch ihn wird auch Unverdauliches wieder ausgestossen.</span></td><td>Strudel- und Saugwurm: blind endender, verzweigter Darm, nur eine Öffnung (Mund = After). Bandwurm: <b>kein</b> Darm, Nahrung über die Haut <span class="src">Natura S.&nbsp;40–41</span><span class="x">Strudel- und Saugwürmer haben einen Darm, der sich verzweigt und blind endet. Weil es keinen After gibt, ist der Mund zugleich After. Der Bandwurm hat gar keinen Darm: Er lebt im Nahrungsbrei seines Wirts und nimmt die schon verdaute Nahrung direkt über die Körperoberfläche auf.</span></td><td>durchgehender Darm von Mund bis After <span class="src">Natura S.&nbsp;43 Abb.&nbsp;6</span><span class="x">Der Regenwurm hat einen durchgehenden Darm: Die Nahrung kommt vorne durch den Mund hinein, wandert durch alle Segmente und verlässt den Körper hinten durch den After.</span></td><td>Darm mit Magen <span class="src">Natura S.&nbsp;46</span><span class="x">Insekten haben einen Verdauungskanal mit Magen und Darm, der vom Kopf bis ans Ende des Hinterleibs reicht.</span></td></tr>
+<tr><td><b>Blutkreislauf</b></td><td>keiner<span class="x">Nesseltiere haben keinen Blutkreislauf.</span></td><td>keine Blutgefässe <span class="ext">⚠ Allgemeinwissen</span><span class="x">Plattwürmer haben keine Blutgefässe und damit auch keinen Blutkreislauf. ⚠ Das steht nicht ausdrücklich in deinen Unterlagen; dort wird bei den Plattwürmern einfach kein Kreislauf erwähnt.</span></td><td><b>geschlossen</b>: Rückengefäss, Bauchgefäss, Ringgefässe; 5 Ringgefässe pulsieren wie Herzen («Seitenherzen») <span class="src">AB Regenwurm, Natura S.&nbsp;42</span><span class="x">Beim Regenwurm fliesst das Blut nur in Gefässen, darum heisst der Kreislauf «geschlossen». Es gibt ein Rückengefäss und ein Bauchgefäss, die durch Ringgefässe verbunden sind. Ein grosses Herz fehlt: Die ersten fünf Ringgefässe pulsieren und treiben das Blut an (Seitenherzen).</span></td><td><b>offen</b>: Röhrenherz im Hinterleib, Blut umspült die Organe <span class="src">Natura S.&nbsp;46–47</span><span class="x">Bei Insekten fliesst das Blut nicht nur in Gefässen, sondern auch frei im Körper, darum heisst der Kreislauf «offen». Das röhrenförmige Herz im Hinterleib saugt das Blut seitlich an und pumpt es nach vorne. In der Brust tritt es aus, umspült die Organe und fliesst zurück zum Herzen. Das Blut ist farblos und transportiert Nährstoffe, Abfallstoffe und Wärme.</span></td></tr>
+<tr><td><b>Atmung</b></td><td>über die Körperoberfläche <span class="ext">⚠ Allgemeinwissen</span><span class="x">Nesseltiere haben keine Atmungsorgane; der Gasaustausch läuft über die Körperoberfläche. ⚠ Das steht nicht in deinen Unterlagen.</span></td><td>Strudelwurm: über die Haut <span class="src">Natura S.&nbsp;40</span><span class="x">Der Strudelwurm atmet durch die Haut. Für Leberegel und Bandwurm steht dazu nichts in deinen Unterlagen.</span></td><td><b>Hautatmung</b> → Haut muss feucht sein, «Feuchtlufttier» <span class="src">AB Regenwurm, Natura S.&nbsp;42</span><span class="x">Der Regenwurm hat keine Lunge und atmet durch die Haut. Das funktioniert nur, wenn die Haut feucht ist. Darum lebt er im feuchten Boden und trocknet in trockener Umgebung schnell aus (Feuchtlufttier).</span></td><td><b>Tracheen</b> mit Atemöffnungen (Stigmata) <span class="src">Natura S.&nbsp;47</span><span class="x">Insekten atmen mit Tracheen. Das sind feine Röhren, die von kleinen Atemöffnungen (Stigmata) an Brust und Hinterleib bis zu allen Organen führen. So gelangt Sauerstoff direkt zu den Organen und Kohlenstoffdioxid hinaus. Pumpbewegungen des Hinterleibs tauschen die Luft aus.</span></td></tr>
+<tr><td><b>Nervensystem</b></td><td>Hydra: <b>diffuses Nervennetz</b>, ohne Zentrum <span class="src">Skript Hydra</span><span class="x">Die Nervenzellen der Hydra liegen verstreut im Körper und sind untereinander zu einem Netz verbunden. Es gibt kein Zentrum und kein Gehirn; man nennt das ein diffuses Nervensystem.</span></td><td>Strudelwurm, Leberegel: Ganglion («Gehirn») vorne + Längsnervenstränge <span class="src">AB Strudelwürmer, AB Leberegel-Text (Abb.)</span><span class="x">Beim Strudelwurm liegt am Vorderende eine Ansammlung von Nervenzellen, ein Ganglion («Gehirn»). Von dort ziehen zwei Nervenstränge nach hinten, die durch Querstränge verbunden sind. Das Nervensystem hat also schon ein Zentrum. Auch die Abbildung des Leberegels zeigt ein Gehirn-Ganglion und Markstränge. Zum Bandwurm steht dazu nichts in deinen Unterlagen.</span></td><td><b>Strickleiternervensystem</b> auf der Bauchseite (Bauchmark) + Nervenknoten im Kopflappen <span class="src">Natura S.&nbsp;42, AB Regenwurm</span><span class="x">Im Kopflappen sitzt eine Ansammlung von Nervenzellen (Gehirn). Auf der Bauchseite verlaufen zwei Nervenstränge mit einer Verdickung in jedem Segment, verbunden durch Querverbindungen. Das sieht aus wie eine Strickleiter (Strickleiternervensystem); weil es am Bauch liegt, heisst es auch Bauchmark.</span></td><td>Gehirn über dem Mund + <b>Strickleiternervensystem</b> (Bauchmark) <span class="src">Natura S.&nbsp;47</span><span class="x">Das Gehirn liegt im Kopf über dem Mund. Von dort laufen zwei dicke Nervenstränge auf der Bauchseite durch den ganzen Körper und sind in jedem Segment miteinander verbunden. Wie beim Regenwurm ist das ein Strickleiternervensystem.</span></td></tr>
+<tr><td><b>Ausscheidung</b></td><td>–</td><td>einfache Ausscheidungsorgane mit bewimperten Zellen <span class="src">AB Strudelwürmer</span><span class="x">Plattwürmer haben einfache Ausscheidungsorgane. Sie befördern mithilfe von bewimperten Zellen Wasser und gelöste Abfallstoffe nach aussen.</span></td><td>2 Ausscheidungsorgane pro Segment, mit Wimpertrichter <span class="src">Natura S.&nbsp;42, AB Regenwurm</span><span class="x">In jedem Segment liegen zwei Ausscheidungsorgane. Sie nehmen flüssige Abfallstoffe mit einem Wimpertrichter auf und leiten sie durch einen Kanal nach aussen. Der Kanal führt durch die Trennwand ins nächste Segment.</span></td><td>Ausscheidungsorgan (lila auf dem AB) <span class="src">AB Biene, Natura S.&nbsp;46</span><span class="x">Insekten haben eigene Ausscheidungsorgane im Hinterleib. Auf dem Arbeitsblatt A2 sind sie lila.</span></td></tr>
+<tr><td><b>Fortbewegung</b></td><td>Hydra: Überschlag / Spannerraupen-Art; Qualle: Rückstoss <span class="src">Skript, Natura S.&nbsp;39</span><span class="x">Die Hydra heftet ihre Fangarme am Boden an und schwingt den Körper darüber (Überschlag). Oder sie heftet die Fangarme an und zieht den Fuss nach, wie eine Spannerraupe. Die Ohrenqualle zieht ihren Schirm ruckartig zusammen und schwimmt so nach dem Rückstossprinzip.</span></td><td>Strudelwurm: Wimpern + Schleim (Gleiten) <span class="src">AB Strudelwürmer</span><span class="x">Der Strudelwurm hat auf der Bauchseite Wimpern. Ihr Schlagen erzeugt einen Strudel, mit dem er auf einer Schleimschicht dahingleitet. Grössere Tiere helfen mit kleinen Muskelbewegungen nach.</span></td><td>Ring- und Längsmuskeln abwechselnd (peristaltisch), Borsten verankern <span class="src">Natura S.&nbsp;42</span><span class="x">Zuerst ziehen sich die Ringmuskeln zusammen: Die Segmente werden dünner und länger, der Wurm streckt sich nach vorn. Dann ziehen sich die Längsmuskeln zusammen: Die Segmente werden dicker und kürzer, der Rest des Körpers wird nachgezogen. Die schräg nach hinten gerichteten Borsten verhindern dabei das Zurückrutschen.</span></td><td>6 Gliederbeine, Flügel; Beuger und Strecker <span class="src">Natura S.&nbsp;44–46</span><span class="x">Insekten laufen auf sechs Gliederbeinen, wobei immer mindestens drei Beine Bodenkontakt haben. Die meisten können auch fliegen. Jedes Gelenk wird von zwei Gegenspieler-Muskeln bewegt: Der Beuger knickt das Bein, der Strecker streckt es.</span></td></tr>
+<tr><td><b>Fortpflanzung</b></td><td>Hydra: Knospung + geschlechtlich, meist Zwitter. Ohrenqualle: Generationswechsel, männliche und weibliche Quallen <span class="src">Skript, Natura S.&nbsp;38–39</span><span class="x">Gut ernährte Hydren bilden Knospen, aus denen neue Polypen wachsen (ungeschlechtlich). Sie können sich aber auch geschlechtlich fortpflanzen; die meisten Polypen sind Zwitter. Bei der Ohrenqualle gibt es dagegen männliche und weibliche Quallen. Ihre Fortpflanzung wechselt regelmässig zwischen geschlechtlich (Qualle) und ungeschlechtlich (Polyp) ab. Das heisst Generationswechsel.</span></td><td>Strudelwurm: Zwitter; Parasiten mit Wirtswechsel <span class="src">AB Strudelwürmer, Natura S.&nbsp;40–41</span><span class="x">Strudelwürmer sind Zwitter, haben also männliche und weibliche Geschlechtsorgane. Die Parasiten unter den Plattwürmern (Saug- und Bandwürmer) wechseln während ihrer Entwicklung zwischen verschiedenen Wirten.</span></td><td>Zwitter, gegenseitige Begattung, Kokon <span class="src">Natura S.&nbsp;43</span><span class="x">Regenwürmer sind Zwitter. Bei der Paarung tauschen zwei Würmer gegenseitig Spermien aus. Später legt der Wurm seine Eier in eine Schleimhülle vom Gürtel, wo sie befruchtet werden. Daraus wird ein schützender Kokon, aus dem die Jungen schlüpfen.</span></td><td>getrennt-geschlechtlich <span class="ext">⚠ Allgemeinwissen</span>; Entwicklung mit oder ohne Puppe <span class="src">Natura S.&nbsp;48–49</span><span class="x">Insekten sind Männchen oder Weibchen (⚠ Allgemeinwissen). Sie entwickeln sich entweder mit Puppenstadium (vollständige Verwandlung, z.&nbsp;B. Schmetterling, Biene) oder ohne Puppe (unvollständige Verwandlung, z.&nbsp;B. Heuschrecke).</span></td></tr>
+<tr><td><b>Regeneration</b></td><td>Hydra: sehr gut (1/200 des Körpers genügt) <span class="src">Skript</span><span class="x">Die Hydra kann verlorene Körperteile sehr gut ersetzen: Schon ein winziges Stück (1/200 des Körpers) wächst wieder zu einer ganzen Hydra heran. Möglich machen das die vielen unspezialisierten Ersatzzellen.</span></td><td>Strudelwurm: sehr gut <span class="src">AB Strudelwürmer</span><span class="x">Wird ein Strudelwurm in zwei Teile geschnitten, entstehen daraus zwei vollständige, funktionsfähige Tiere.</span></td><td>–</td><td>–</td></tr>
+</table></div>
+<p>Die Felder mit <span class="ext">⚠ Allgemeinwissen</span> stehen nicht in deinen Unterlagen. Ich habe sie nur ergänzt, damit die Tabelle vollständig ist.</p>
+
+<!-- ================= NESSELTIERE ================= -->
+<h2 id="nessel">2. Nesseltiere: der Süsswasserpolyp (Hydra)</h2>
+<p class="goal">Lernziele 1, 2, 7</p>
+<h3>Allgemein</h3>
+<ul>
+<li>Einfach gebaute Vielzeller mit unterschiedlichen Geweben, gebaut als <b>Polyp</b> (festsitzend) oder <b>Qualle/Meduse</b> (frei schwimmend, schirmförmig) <span class="src">Natura S.&nbsp;38, Skript S.&nbsp;3</span></li>
+<li>Kennzeichen des Stammes: <b>Nesselzellen</b>. Dazu gehören Quallen, Seeanemonen, Korallen und Hydrozoen <span class="src">AB Süsswasserpolyp</span></li>
+<li>Hydra: bis 3&nbsp;cm, lebt in klaren, sauerstoffreichen Gewässern ohne schnelle Strömung. Sie haftet mit der <b>Fussscheibe</b> an Wasserpflanzen; oben sitzen die <b>Tentakel</b> (Fangarme) rund um die Mundöffnung <span class="src">Natura S.&nbsp;38</span></li>
+<li>Im Praktikum: durchschnittlich <b>6,75 Tentakel</b> <span class="src">deine Notiz 16. Sept.</span></li>
+</ul>
+
+<h3>Bau der Körperwand</h3>
+<ul>
+<li><b>Ektoderm</b> (Hautblatt, aussen): Hautmuskelzellen (Epithelmuskelzellen), Sinneszellen, Nesselzellen, Ersatzzellen <span class="src">Skript, Natura S.&nbsp;38</span>. Funktion: Schutz und Sinne <span class="src">Skript S.&nbsp;2</span></li>
+<li><b>Stützlamelle / Stützschicht</b> (Mitte): gallertig, elastisch, <b>zellenlos</b> <span class="src">Skript</span>. Darauf liegen die Nervenzellen</li>
+<li><b>Entoderm</b> (Darmblatt, innen): Epithelmuskelzellen mit je zwei Geisseln («Fresszellen» / Nährzellen), Drüsenzellen; bei der grünen Hydra symbiontische Grünalgen <span class="src">Skript</span>. Funktion: Verdauung</li>
+<li>Beide Schichten sind <b>Mischgewebe</b> und jeweils <b>nur eine Zelle dick</b> <span class="src">Skript, AB Süsswasserpolyp</span></li>
+</ul>
+<div class="extbox"><b>Achtung, kleiner Unterschied zwischen deinen Quellen:</b> Natura sagt, die Nervenzellen und Ersatzzellen liegen <i>in der Stützschicht</i>. Das Skript sagt, die Nervenzellen liegen <i>auf</i> der Stützlamelle und die Ersatzzellen liegen <i>zwischen</i> den Zellen des Ektoderms. Die Stützlamelle selbst ist laut Skript zellenlos. Im Test ist «Nervenzellen und Ersatzzellen zwischen den beiden Schichten» vermutlich die sichere Antwort.</div>
+
+<h3>Die verschiedenen Zellen</h3>
+<div class="scroll"><table>
+<tr><th>Zelle</th><th>Schicht</th><th>Aufgabe</th></tr>
+<tr><td>Hautmuskelzelle</td><td>Ektoderm</td><td>Bedeckung; Muskelfäden <b>längs</b> → Verkürzen <span class="src">Skript</span><span class="x">Die Hautmuskelzellen bilden den grössten Teil der Aussenschicht und bedecken den Körper. An ihrer Basis haben sie Muskelfäden, die in Längsrichtung verlaufen. Ziehen sich diese zusammen, wird die Hydra kürzer.</span></td></tr>
+<tr><td>Epithelmuskelzelle (Nährzelle, Fresszelle)</td><td>Entoderm</td><td>nimmt Nahrungsteilchen durch <b>Phagocytose</b> auf, verdaut sie fertig; rührt mit 2 Geisseln; Muskelfaden <b>quer</b> («Ringmuskulatur») → Strecken <span class="src">Skript</span><span class="x">Diese Zellen kleiden den Magen-Darm-Raum aus und rühren mit je zwei Geisseln den Inhalt um. Kleine Nahrungsteilchen umschliessen sie mit ihrem Zellplasma (Phagocytose) und verdauen sie in der Zelle fertig. Ihre Muskelfäden verlaufen quer zum Körper; ziehen sie sich zusammen, wird die Hydra dünner und länger.</span></td></tr>
+<tr><td>Drüsenzelle</td><td>Entoderm</td><td>bildet Verdauungssäfte und gibt sie in den Gastralraum ab; keine Geisseln <span class="src">Skript</span><span class="x">Drüsenzellen bilden Verdauungssäfte und geben sie in den Magen-Darm-Raum ab. Dort beginnt die Verdauung der Beute. Im Gegensatz zu den Fresszellen haben sie keine Geisseln.</span></td></tr>
+<tr><td>Sinneszelle</td><td>Ektoderm</td><td>Sinnesstiftchen nach aussen <span class="src">Skript</span><span class="x">Sinneszellen strecken ein feines Sinnesstiftchen nach aussen und nehmen damit Reize auf. Sie sind über Fasern mit den Nervenzellen verbunden.</span></td></tr>
+<tr><td>Nervenzelle</td><td>auf der Stützlamelle</td><td>untereinander verbunden → <b>diffuses Nervensystem ohne Zentrum</b> <span class="src">Skript</span><span class="x">Die Nervenzellen liegen verstreut auf der Stützlamelle und sind untereinander zu einem Netz verbunden. Weil dieses Netz kein Zentrum hat, spricht man von einem diffusen Nervensystem.</span></td></tr>
+<tr><td>Nesselzelle</td><td>Ektoderm, v.&nbsp;a. Tentakel<span class="x">Nesselzellen sitzen in der Aussenschicht, besonders viele an den Fangarmen.</span></td><td>Beutefang, Verteidigung (siehe unten)<span class="x">Mit den Nesselzellen fängt die Hydra Beute und wehrt sich: Bei Berührung schiesst ein giftiger Nesselfaden heraus, der die Beute lähmt oder tötet.</span></td></tr>
+<tr><td>Ersatzzelle</td><td>dazwischen<span class="x">Ersatzzellen liegen in kleinen Gruppen zwischen den anderen Zellen.</span></td><td>unspezialisiert; ersetzen abgestorbene Zellen, heilen Wunden, ermöglichen Regeneration; werden zu allen anderen Zelltypen und zu Geschlechtszellen <span class="src">Skript, Natura S.&nbsp;38</span><span class="x">Ersatzzellen sind nicht spezialisiert und können sich zu jedem anderen Zelltyp entwickeln. Sie ersetzen abgestorbene Zellen, heilen Wunden, ermöglichen die Regeneration und bilden auch die Geschlechtszellen.</span></td></tr>
+</table></div>
+
+<h3>Nesselzelle (muss man skizzieren können)</h3>
+<ul>
+<li>Teile: Kapselwand, Deckel, Auslösungsstift (Sinneshaar), Stilettapparat, aufgerollter Nesselfaden (Schlauch), Gift, Zellkern <span class="src">Natura S.&nbsp;39 Abb.&nbsp;4</span></li>
+<li>Ruhe: Schlauch ist ins Kapselinnere eingestülpt, spiralig, mit giftigem Nesselsaft <span class="src">Skript</span></li>
+<li>Berührt ein Beutetier das Sinneshaar → <b>Deckel springt ab</b> → Schlauch wird durch Flüssigkeitsdruck nach aussen gestülpt → Stilett durchdringt die Beute → Gift lähmt oder tötet, wirkt auch als Klebemittel <span class="src">Skript, Natura S.&nbsp;38</span></li>
+<li>Ohrenqualle: für Menschen harmlos, weil die Nesselfäden unsere Haut nicht durchdringen <span class="src">Natura S.&nbsp;39</span>. Bei anderen: Hautreizung wie bei Brennnesseln <span class="src">AB Süsswasserpolyp</span></li>
+</ul>
+
+<h3>Ernährung (Fressakt)</h3>
+<div class="flow"><span>Beute berührt Tentakel</span><b>→</b><span>Nesselzellen schiessen, Beute gelähmt</span><b>→</b><span>Tentakel stopfen Beute in den Mund</span><b>→</b><span>Drüsenzellen: Verdauungssäfte im Gastralraum</span><b>→</b><span>Fresszellen: Phagocytose, Verdauung fertig</span><b>→</b><span>Unverdauliches durch den Mund hinaus</span></div>
+<p><span class="src">Natura S.&nbsp;38, Skript S.&nbsp;2</span>. Nahrung: Wasserflöhe, Fischbrut. Dein Praktikum: Die Salinenkrebse wurden bei Berührung sofort starr (gelähmt), jeder einzeln <span class="src">deine Notiz</span>.</p>
+
+<h3>Bewegung: zwei Muskelprinzipien</h3>
+<ul>
+<li>Ektoderm-Muskelfäden <b>längs</b> → Hydra wird kürzer. Entoderm-Muskelfäden <b>quer</b> (Ringmuskulatur) → Hydra wird dünner und länger <span class="src">Skript</span>. Beide wirken gegeneinander (Ziel I im Praktikum: «Zwei Muskelprinzipien verstehen»).</li>
+<li>Fortbewegung: <b>Überschlag</b> («Handstandüberschlag»): Fangarme heften mit Klebekapseln am Boden an, Rumpf schwingt hinüber, richtet sich auf. Oder <b>nach Art der Spannerraupe</b>: Fangarme anheften, Fuss nachziehen. Etwa 2&nbsp;cm pro Tag <span class="src">Skript S.&nbsp;3, Natura S.&nbsp;38</span></li>
+</ul>
+
+<h3>Fortpflanzung und Regeneration</h3>
+<ul>
+<li><b>Ungeschlechtlich – Knospung</b> (bei guter Ernährung): Alle Schichten wölben sich vor, der Magenraum ist anfangs mit dem Muttertier verbunden (Nahrung fliesst hinüber), dann löst sich der Tochterpolyp ab <span class="src">Skript, Natura S.&nbsp;38</span></li>
+<li><b>Geschlechtlich</b>: Aus Ersatzzellen entstehen Spermien (Hoden im oberen Drittel) und Eizellen (Ovar weiter unten). Sie werden ins Wasser entlassen, dort Befruchtung. Die meisten Polypen sind <b>Zwitter</b> <span class="src">Skript S.&nbsp;2</span></li>
+<li><b>Regeneration</b>: Geköpftes Stück bildet in ca. 4 Tagen neue Tentakel; schon 1/200 des Körpers kann ein Ganzes bilden. Möglich durch Ersatzzellen und Umdifferenzierung <span class="src">Skript S.&nbsp;2</span></li>
+</ul>
+<details><summary>Abbildungen ansehen (Natura S. 38 / Skript / Anatomie-Bild)</summary>
+<img src="bilder/natura-s38.jpg" alt="Natura Seite 38"><img src="bilder/skript-hydra-1.jpg" alt="Skript Hydra Seite 1"><img src="bilder/hydra-anatomie.jpg" alt="Hydra Anatomie">
+</details>
+
+<!-- ================= QUALLE ================= -->
+<h2 id="qualle">3. Lebenszyklus der Ohrenqualle (Generationswechsel)</h2>
+<p class="goal">Lernziel 3 – auch skizzieren!</p>
+<ul>
+<li>Ohrenqualle: bis 40&nbsp;cm, alle Ozeane, ca. 96&nbsp;% Wasser; schwimmt durch Zusammenziehen des Schirms (<b>Rückstoss</b>). Name von den 4 ohrenförmigen Geschlechtsorganen. 4 Mundarme, viele kurze Randtentakel mit Nesselzellen <span class="src">Natura S.&nbsp;39</span></li>
+<li>Gebaut wie ein Polyp «auf den Kopf gestellt», aber mit sehr dicker Stützschicht im Schirm <span class="src">Natura S.&nbsp;39</span></li>
+</ul>
+<div class="flow"><span>♂ und ♀ Qualle</span><b>→</b><span>Spermien + Eier, befruchtete Eier</span><b>→</b><span>Wimperlarven</span><b>→</b><span>setzen sich fest</span><b>→</b><span>Polyp</span><b>→</b><span>schnürt Scheiben ab (ungeschlechtlich)</span><b>→</b><span>Quallenlarve schwimmt davon</span><b>→</b><span>wird zur Qualle</span></div>
+<ul>
+<li><b>Generationswechsel</b> = ständiger Wechsel von geschlechtlicher (Qualle) und ungeschlechtlicher (Polyp) Fortpflanzung <span class="src">Natura S.&nbsp;39, Skript S.&nbsp;3</span></li>
+<li><b>Larve</b> = nicht geschlechtsreifes Jugendstadium <span class="src">Natura S.&nbsp;39</span></li>
+<li>Zweites Beispiel aus dem Skript: <b>Obelia</b> – Tierstock mit Fress- und Vermehrungspolypen; durch Knospung entstehen männliche und weibliche Medusen → Geschlechtszellen → Zygote → bewimperte Larve → setzt sich fest → neuer Tierstock <span class="src">Skript S.&nbsp;4</span></li>
+</ul>
+<div class="extbox">⚠ <b>Nicht aus deinen Unterlagen (Fachbegriffe):</b> Wimperlarve = <i>Planula</i>, festsitzender Polyp = <i>Scyphistoma</i>, Polyp beim Abschnüren = <i>Strobila</i>, Quallenlarve = <i>Ephyra</i>. Dein Buch braucht diese Wörter nicht. Nimm im Test besser die Buchbegriffe.</div>
+<details><summary>Abbildungen ansehen</summary><img src="bilder/natura-s39.jpg" alt="Natura Seite 39"><img src="bilder/qualle-zyklus.jpg" alt="Lebenszyklus Qualle (englisch)"></details>
+
+<!-- ================= PLATTWÜRMER ================= -->
+<h2 id="platt">4. Plattwürmer (Plathelminthes) allgemein</h2>
+<p class="goal">Lernziele 1, 2, 4, 7</p>
+<ul>
+<li><b>Bilateral symmetrisch</b>: Eine Längsachse teilt sie in zwei spiegelgleiche Hälften <span class="src">AB Strudelwürmer</span></li>
+<li><b>3 Keimblätter</b>: Ektoderm → Haut; Entoderm → blind endender Darm; Mesoderm → Füllgewebe (Mesenchym), Ring- und Längsmuskeln <span class="src">AB Strudelwürmer</span></li>
+<li>Im Füllgewebe: Quermuskeln (Rücken → Bauch), einfache Ausscheidungsorgane mit Wimpernzellen, Nervensystem <span class="src">AB Strudelwürmer</span></li>
+<li><b>Kein After</b>: Der Darm endet blind <span class="src">AB Strudelwürmer</span>. Atmung über die Haut <span class="src">Natura S.&nbsp;40</span>. Keine Blutgefässe <span class="ext">⚠ Allgemeinwissen</span></li>
+<li>Strudelwürmer sind <b>Zwitter</b> <span class="src">AB Strudelwürmer, Natura S.&nbsp;40</span></li>
+</ul>
+<div class="scroll"><table>
+<tr><th>Klasse</th><th>Lebensweise</th><th>Darm</th><th>Beispiel</th></tr>
+<tr><td><b>Strudelwürmer</b> (Turbellaria)</td><td>frei lebend<span class="x">Strudelwürmer leben frei, z.&nbsp;B. unter Steinen in sauberen Bächen, und suchen dort nach kleinen Beutetieren.</span></td><td>ja, verzweigt, blind endend<span class="x">Ihr Darm ist stark verzweigt und endet blind. Mund und After sind dieselbe Öffnung.</span></td><td>Dreieckstrudelwurm, Planarie</td></tr>
+<tr><td><b>Saugwürmer</b> (Trematodes)</td><td>Parasiten<span class="x">Saugwürmer leben alle als Parasiten in anderen Tieren und halten sich mit Saugnäpfen fest. Ihre Entwicklung läuft über mehrere Wirte.</span></td><td>ja<span class="x">Sie haben noch einen Darm, beim Leberegel gegabelt.</span></td><td>Kleiner Leberegel</td></tr>
+<tr><td><b>Bandwürmer</b> (Cestodes)</td><td>Parasiten<span class="x">Bandwürmer leben als Parasiten im Darm ihres Endwirts und halten sich mit Saugnäpfen am Kopf fest.</span></td><td><b>nein</b> (Nahrung über die Haut)<span class="x">Sie haben keinen Darm. Weil sie im schon verdauten Nahrungsbrei des Wirts leben, nehmen sie die Nahrung direkt über die Körperoberfläche auf.</span></td><td>Rinder-, Fuchsbandwurm</td></tr>
+</table></div>
+<p><span class="src">AB Strudelwürmer, Natura S.&nbsp;40–41</span></p>
+<p><b>Anpassung an das Parasitenleben</b>: Rückbildung des Darms (Bandwurm) und Haftorgane wie Saugnäpfe, Haken, Sauggruben <span class="src">AB Strudelwürmer</span>. Riesige Eizahl, weil der Wirtswechsel oft fehlschlägt <span class="src">Natura S.&nbsp;41</span>.</p>
+<details><summary>Querschnitt Plattwurm ansehen</summary><img src="bilder/ab-strudelwurm-1.jpg" alt="AB Strudelwürmer Seite 1"></details>
+
+<h2 id="strudel">5. Strudelwurm (frei lebend)</h2>
+<ul>
+<li>Dreieckstrudelwurm bis 25&nbsp;mm, saubere Gebirgsbäche; unter Steinen, kriecht <span class="src">Natura S.&nbsp;40</span>. Strudelwürmer: 0,5–2&nbsp;cm, flach, braun/weiss, Unterseite von Steinen und Wasserpflanzen <span class="src">AB Strudelwürmer</span></li>
+<li><b>Fortbewegung</b>: Wimpern an der Bauchseite erzeugen einen Strudel (Name!), Schleim hilft beim Gleiten und schützt. Grössere Tiere helfen mit kleinen Muskelbewegungen nach <span class="src">AB Strudelwürmer</span>. Natura: «einfach gebauter Muskelschlauch» <span class="src">Natura S.&nbsp;40</span></li>
+<li><b>Ernährung</b>: Mund hinter der Körpermitte auf der Bauchseite. Ein muskulöses Saugrohr (<b>Pharynx</b>) wird ausgestülpt, Nahrung gelangt in den blind endenden, verzweigten Darm. Mund = After (nur eine Öffnung) <span class="src">AB, Natura S.&nbsp;40</span></li>
+<li><b>Atmung</b> über die Haut <span class="src">Natura S.&nbsp;40</span></li>
+<li><b>Nervensystem</b>: «Gehirn» (Ganglion) unter den Augen + 2 seitliche Nervenstränge mit Querverbindungen <span class="src">Natura S.&nbsp;40, AB</span></li>
+<li><b>Augen</b>: Die Tiere sind lichtscheu und kriechen mit pendelnder Kopfbewegung vom Licht weg (<b>negative Phototaxis</b>, <b>Richtungssehen</b>) <span class="src">AB Strudelwürmer S.&nbsp;2</span></li>
+<li><b>Fortpflanzung</b>: Zwitter, tauschen Spermien gegenseitig aus; Eier in einem Kokon, Junge gleichen den Erwachsenen <span class="src">AB S.&nbsp;2</span>. Auch ungeschlechtlich durch <b>Querteilung</b> <span class="src">Natura S.&nbsp;40</span></li>
+<li><b>Regeneration</b>: Aus einem zerschnittenen Tier entstehen zwei funktionsfähige Tiere <span class="src">AB S.&nbsp;2</span></li>
+</ul>
+<details><summary>Abbildungen ansehen</summary><img src="bilder/natura-s40.jpg" alt="Natura Seite 40"><img src="bilder/ab-strudelwurm-2.jpg" alt="AB Strudelwürmer Seite 2"></details>
+
+<!-- ================= LEBEREGEL ================= -->
+<h2 id="leberegel">6. Kleiner Leberegel (Saugwurm) – Lebenszyklus</h2>
+<p class="goal">Lernziel 5 – skizzieren können!</p>
+<ul>
+<li>Auch «Lanzettegel», 8–10&nbsp;mm, Parasit in der Leber von Wiederkäuern (Schaf, Rind, Ziege); Menschen nur sehr selten <span class="src">AB Leberegel-Text, Natura S.&nbsp;40</span></li>
+<li>Bau wie ein Strudelwurm, aber statt Mund: <b>Mundsaugnapf</b> vorne und <b>Bauchsaugnapf</b> in der Körpermitte; Darm, Hoden, Ovar, Dotterstock, Uterus <span class="src">Natura S.&nbsp;40, AB Leberegel-Text (Abb.&nbsp;12.25)</span></li>
+<li>Lebensraum der Zwischenwirte: trockene Kalkhänge (Schafweiden) <span class="src">AB Leberegel-Text</span></li>
+</ul>
+<h3>Der Zyklus</h3>
+<ol>
+<li><b>Endwirt</b> (Schaf, Rind): erwachsene Egel in der Leber, <b>geschlechtliche</b> Fortpflanzung. Befruchtete Eier gehen mit dem Kot hinaus.</li>
+<li><b>1. Zwischenwirt: Landschnecke</b> frisst die Eier → <b>Wimperlarve</b> (Flimmerlarve, Miracidium) → Mutterbrutschlauch → viele Tochterbrutschläuche → bis zu 6000 <b>Schwanzlarven</b> (Zerkarien) mit Bohrstachel. Hier <b>ungeschlechtliche</b> Vermehrung.</li>
+<li>Bei Regen stösst die Schnecke die Schwanzlarven in <b>Schleimbällchen</b> aus der Atemöffnung aus.</li>
+<li><b>2. Zwischenwirt: Ameise</b> frisst die Schleimbällchen. Die Larven durchbohren die Kropfwand und kapseln sich in der Leibeshöhle ein (Metazerkarien). <b>Eine</b> Larve wandert ins Unterschlundganglion («Hirnwurm»).</li>
+<li>Der «Hirnwurm» verändert das Verhalten: Bei Kühle (Abend, Morgen) beisst sich die Ameise an der <b>Spitze von Pflanzen</b> fest. Bei Wärme löst sich der Krampf wieder.</li>
+<li>Das Schaf frisst beim Grasen die festgebissene Ameise → neuer Egel in der Leber.</li>
+</ol>
+<p><span class="src">AB Leberegel-Text, Natura S.&nbsp;40–41</span></p>
+<ul>
+<li><b>Endwirt</b> = Wirt, in dem die geschlechtliche Fortpflanzung stattfindet <span class="src">Natura S.&nbsp;40</span></li>
+<li>Durch die vielen Vermehrungsschritte im <b>Generationswechsel</b> verbreitet er sich trotz vieler fehlschlagender Wirtswechsel erfolgreich <span class="src">Natura S.&nbsp;41</span></li>
+</ul>
+<details><summary>Abbildungen ansehen (zum Vergleichen nach dem Skizzieren)</summary><img src="bilder/natura-s41.jpg" alt="Natura Seite 41"><img src="bilder/ab-leberegel-text.jpg" alt="AB Leberegel Text"></details>
+<details><summary>Leeres Arbeitsblatt (zum Selbst-Ausfüllen)</summary><img src="bilder/ab-leberegel-leer.jpg" alt="AB Lebenskreislauf leer"></details>
+
+<!-- ================= BANDWÜRMER ================= -->
+<h2 id="band">7. Bandwürmer: Rinderbandwurm und Fuchsbandwurm</h2>
+<p class="goal">Lernziel 5</p>
+<h3>Bau</h3>
+<ul>
+<li>Rinderbandwurm bis 10&nbsp;m, im Darm des Menschen. Kleiner Kopf (ca. 2&nbsp;mm) mit <b>4 Saugnäpfen</b> <span class="src">Natura S.&nbsp;41</span></li>
+<li>Hinter dem Kopf eine <b>Wachstumszone</b> → bis 2000 Glieder <span class="src">Natura S.&nbsp;41</span>, auch <b>Proglottiden</b> genannt <span class="src">AB Fuchsbandwurm, Zusatz 4</span></li>
+<li><b>Kein Mund, kein Darm, kein After</b>: Nahrung und Ausscheidung über die Körperoberfläche <span class="src">Natura S.&nbsp;41</span></li>
+<li>Täglich lösen sich die letzten 10–12 Glieder mit je ca. 10&nbsp;000 Eiern → enorm viele Eier, weil die Chance klein ist, dass ein Ei den richtigen Wirt erreicht <span class="src">Natura S.&nbsp;41</span></li>
+</ul>
+<h3>Rinderbandwurm</h3>
+<div class="flow"><span>Mensch (Endwirt): Bandwurm im Darm</span><b>→</b><span>reife Endglieder mit Eiern im Kot (Düngung)</span><b>→</b><span>Rind frisst Ei</span><b>→</b><span>Hakenlarve → über das Blut in den Muskel</span><b>→</b><span>Finne im Muskel (Kopf eingestülpt)</span><b>→</b><span>Mensch isst rohes, finniges Fleisch</span><b>→</b><span>Kopf stülpt sich aus, saugt sich fest, 2–3 Monate</span></div>
+<p>Symptome beim Menschen: Müdigkeit, Erbrechen, nervöse Störungen <span class="src">Natura S.&nbsp;41</span>.</p>
+<h3>Fuchsbandwurm</h3>
+<div class="flow"><span>Fuchs (Endwirt): geschlechtliche Fortpflanzung im Darm</span><b>→</b><span>Endglied mit Eiern</span><b>→</b><span>Junglarve im Ei</span><b>→</b><span>Maus (Zwischenwirt) frisst Ei</span><b>→</b><span>Altlarve mit knospenden Brutkapseln in der <b>Leber</b> (ungeschlechtliche Vermehrung)</span><b>→</b><span>Fuchs frisst Maus</span></div>
+<p><span class="src">AB Fuchsbandwurm</span>. Der <b>Mensch</b> kann die Eier aufnehmen und ist dann <b>Fehlwirt</b>: Er nimmt den Platz der Maus ein, die Larve wächst in seinen Organen (Leber) <span class="src">AB Fuchsbandwurm (Abbildung)</span>.</p>
+<h3>Die Fragen vom Arbeitsblatt</h3>
+<div class="card">
+<b>1. Wo kommt der Mensch als Wirt vor? Unterschiedliche Gefährlichkeit?</b><br>
+Rinderbandwurm: Der Mensch ist <b>Endwirt</b>; der Wurm lebt im Darm. Fuchsbandwurm: Der Mensch ist <b>Fehlwirt</b> an der Stelle des Zwischenwirts; die Larve wächst in der Leber <span class="src">AB Fuchsbandwurm</span>. Daraus folgt: Der Fuchsbandwurm ist für den Menschen gefährlicher, weil er Organe befällt und nicht nur im Darm sitzt.
+<div class="extbox">⚠ <b>Nicht aus deinen Unterlagen:</b> Die Fuchsbandwurm-Larve wächst im Menschen langsam und tumorartig in die Leber hinein (alveoläre Echinokokkose). Ohne Behandlung kann das tödlich enden. Ein Darm-Bandwurm dagegen lässt sich mit Medikamenten gut behandeln.</div>
+<b>2. Keine Eier im Kot – Fuchsbandwurm ausgeschlossen?</b><br>
+<b>Nein.</b> Der Mensch ist Fehlwirt. In ihm entsteht nie ein erwachsener Wurm im Darm, nur Larven in der Leber. Darum findet man auch bei Befall <b>nie</b> Eier im Kot. <span class="ext">⚠ meine Herleitung aus dem AB</span>
+<br><br><b>Zusatz «Bandwurm-Diät»</b>: Ihre Beurteilung ist deine eigene Meinung. Mögliche Argumente aus dem Buch: Müdigkeit, Erbrechen, nervöse Störungen <span class="src">Natura S.&nbsp;41</span>.
+</div>
+<details><summary>Abbildungen ansehen</summary><img src="bilder/ab-fuchsbandwurm.jpg" alt="AB Fuchsbandwurm"><img src="bilder/natura-s41.jpg" alt="Natura Seite 41"></details>
+
+<!-- ================= REGENWURM ================= -->
+<h2 id="regen">8. Rotwurm / Regenwurm (Ringelwurm)</h2>
+<p class="goal">Lernziele 1, 2, 4, 7 – laut Lehrer: der Rotwurm</p>
+<h3>Körperbau</h3>
+<ul>
+<li>Bis 150 Körperringe = <b>Segmente</b> → Ringelwurm. Die Segmente sind fast gleich gebaut, aussen <b>und</b> innen <span class="src">AB Regenwurm, Natura S.&nbsp;42</span></li>
+<li>Vorne der Kopflappen mit Mundöffnung; Kopf nicht erkennbar. Im vorderen Drittel der verdickte <b>Gürtel</b> <span class="src">AB, Natura S.&nbsp;42</span></li>
+<li>Haut glatt, weich, feucht. Kein hartes Skelett <span class="src">Natura S.&nbsp;42</span></li>
+<li><b>Borsten</b> aus Chitin: pro Segment 8 Stück, schräg nach hinten, seitlich und an der Unterseite <span class="src">AB S.&nbsp;2, Natura S.&nbsp;42</span></li>
+<li><b>Hautmuskelschlauch</b> = Haut + Ringmuskelschicht (aussen) + Längsmuskelschicht (innen) <span class="src">Natura S.&nbsp;42</span></li>
+<li><b>Hydroskelett</b>: Der Hautmuskelschlauch umspannt die Körperflüssigkeit, stabil «wie ein gefüllter Luftballon» <span class="src">Natura S.&nbsp;42</span></li>
+</ul>
+<h3>Innere Organe</h3>
+<ul>
+<li><b>Darm</b> durch alle Segmente, von Mund bis After <span class="src">Natura S.&nbsp;42–43</span></li>
+<li><b>Geschlossener Blutkreislauf</b>: Rückengefäss, Bauchgefäss, Ringgefässe. Das Blut fliesst nur in Gefässen. Die ersten 5 Ringgefässe pulsieren wie ein Herz (<b>Seitenherzen</b>) <span class="src">AB Regenwurm, Natura S.&nbsp;42</span></li>
+<li><b>Nervensystem</b> auf der Bauchseite (= <b>Bauchmark</b>): 2 Stränge mit Verdickungen und Querverbindungen in jedem Segment → <b>Strickleiternervensystem</b>. Im Kopflappen eine Ansammlung von Nervenzellen (Gehirn) <span class="src">Natura S.&nbsp;42, AB</span></li>
+<li><b>Ausscheidungsorgane</b>: 2 pro Segment, mit Wimpertrichter. Ein Kanal führt durch die Trennwand ins nächste Segment und gibt flüssige Abfallstoffe nach aussen ab <span class="src">AB, Natura S.&nbsp;42</span></li>
+<li><b>Keine Lunge</b>: Er atmet mit der Haut → braucht Feuchtigkeit, «Feuchtlufttier», trocknet schnell aus <span class="src">AB, Natura S.&nbsp;42</span></li>
+<li><b>Keine richtigen Sinnesorgane</b>, aber Lichtsinneszellen am Vorder- und Hinterende (Schutz vor UV-Licht und Austrocknen). Sinneszellen für Erschütterung, Berührung, Temperatur <span class="src">AB Regenwurm</span></li>
+</ul>
+<h3>Fortbewegung (peristaltisch)</h3>
+<ol>
+<li>Ringmuskeln ziehen sich zusammen → Segmente werden <b>dünner und länger</b>. Die Borsten verhindern ein Zurückrutschen → Vorderteil wird nach vorn geschoben.</li>
+<li>Längsmuskeln ziehen sich zusammen → Segmente werden <b>dicker und kürzer</b>. Die Borsten verankern wieder → der restliche Körper wird nachgezogen.</li>
+</ol>
+<p><span class="src">AB Regenwurm S.&nbsp;2, Natura S.&nbsp;42</span>. Ringmuskeln und Längsmuskeln sind Gegenspieler.</p>
+<h3>Fortpflanzung</h3>
+<ul>
+<li><b>Zwitter</b> (bilden Ei- und Spermienzellen). Paarung: Vorderenden gegenläufig nebeneinander, Schleim verbindet sie. Jeder gibt Spermien ab, die über Rinnen in die Spermientaschen des anderen wandern <span class="src">Natura S.&nbsp;43</span></li>
+<li>Eiablage: Am Gürtel bildet sich eine Schleimhülle, der Wurm streift sie nach vorn ab und legt Eier hinein. Diese werden mit den gespeicherten Spermien befruchtet. Der Schleim härtet zum <b>Kokon</b> aus; nach wenigen Wochen schlüpfen Jungwürmer <span class="src">Natura S.&nbsp;43</span></li>
+</ul>
+<h3>Lebensweise und ökologische Bedeutung</h3>
+<ul>
+<li>Frisst verrottende Pflanzenteile und Erde (mit Einzellern, Bakterien, Pilzen). Zieht nachts Blätter in seine Röhren, wo sie schneller verrotten <span class="src">Natura S.&nbsp;43, AB</span></li>
+<li>Röhren → <b>Durchlüftung</b> des Bodens; Regenwasser dringt leichter ein; Kot voller Mineralstoffe → Humus, <b>Düngung</b>; <b>Durchmischung</b> des Bodens <span class="src">Natura S.&nbsp;43, AB</span></li>
+<li>Versuch: Weizen mit Regenwürmern 10,5&nbsp;g Halm und 110 Körner, ohne 7,1&nbsp;g und 60 Körner <span class="src">Natura S.&nbsp;43</span></li>
+</ul>
+<h3>Zusätzlich aus dem Film («Rundwürmer – Film D423»)</h3>
+<p>Der Film handelt vom Regenwurm <span class="src">Film</span>:</p>
+<ul>
+<li>Kommt normalerweise nur <b>nachts</b> an die Oberfläche, wenn es feucht genug ist. Nach starkem Regen treiben ihn überflutete Gänge hinaus. Bei Tagesanbruch zieht er sich zurück und verschliesst den Eingang mit einem Deckel aus Kot.</li>
+<li>Bis 100 Würmer pro m² Wiese; Gänge bis 3&nbsp;m tief. Der Kot an den Gangwänden macht die Gänge fest.</li>
+<li>Bohrt sich mit dem muskulösen Kopfteil durch die Erde. Kann <b>rückwärts gleich schnell</b> wie vorwärts kriechen; das verbreiterte Schwanzende presst sich wie ein Keil an die Wände. Beim Blätterholen bleibt er mit dem Schwanz in der Röhre verankert und kann so schnell flüchten.</li>
+<li>4 Paar Borsten pro Körperring.</li>
+<li>Bei Trockenheit im Sommer kriecht er tief in den Boden und rollt sich zusammen.</li>
+<li>Abwehr: zäher Schleim, der die Mundwerkzeuge kleiner Feinde verklebt. Feinde: z.&nbsp;B. manche Käfer.</li>
+<li>Geschlechtsreif im 2. Lebensjahr, dann bildet sich der Gürtel (Clitellum). Die Spermien bleiben in den Samentaschen, bis ein Ei gelegt wird; erst dann erfolgt die Befruchtung. Eikokons sind nur Millimeter gross.</li>
+<li>Bei jungen Würmern sieht man das Blut im <b>geschlossenen</b> Gefässsystem fliessen.</li>
+<li>«Verrotten» ist in Wahrheit die Arbeit von Bakterien und Bodentieren. Aus Pflanzenresten und Erde entsteht ein nährstoffreicher Ton-Humus-Komplex; das verbessert vor allem schlechte, magere Böden.</li>
+</ul>
+<h3>Lückentext-Lösung (Arbeitsblatt)</h3>
+<div class="extbox">⚠ <b>Von mir ergänzt:</b> Dein Arbeitsblatt ist nur bis «Herz / Nr.&nbsp;6» ausgefüllt. Den Rest habe ich mit der Wortliste und Natura S.&nbsp;42–43 gelöst. Die Nummern 5, 7, 8, 9 und 10 im Querschnitt habe ich aus dem Bild <b>abgelesen</b>; sie stehen nirgends im Text. Bitte mit der Lösung des Lehrers vergleichen.</div>
+<p>1 Darm (Verdauungstrakt) · 2 Rückengefäss · 3 Bauchgefäss · 4 Ringgefäss · 5 Ausscheidungsorgan · 6 Nervensystem (Bauchmark, Strickleiternervensystem) · 7 Ringmuskel · 8 Längsmuskel · 9 Haut · 10 Borsten.<br>
+Lücken: Segmente, Mundöffnung, 1, Rückengefäss, 3, Ringgefäss, geschlossenen, Herz, 6, Bauchmark, Strickleiternervensystem, Gehirn, 5, Lunge – 7, Längsmuskel, Haut, Längsmuskeln, Borsten – Ringmuskeln, länger, Zurückrutschen, dicker, Borsten – vermodernde, Blätter, Durchlüftung, Wasser, Düngung.</p>
+
+<h3>Praktikum Rotwurm: erwartete Ergebnisse</h3>
+<div class="extbox">⚠ <b>Nicht aus deinen Unterlagen:</b> Das Praktikumsblatt enthält nur die Aufgaben, keine Resultate. Die folgenden Erklärungen sind meine Herleitung aus Natura S.&nbsp;42–43 und dem Lückentext. Wo ich darüber hinausgehe, steht ⚠ dabei. Wenn du andere Beobachtungen notiert hast, gelten deine.</div>
+<ul>
+<li><b>Versuch 1 (feuchtes Papier ↔ Glas):</b> Auf Papier kommt er gut voran, auf Glas rutscht er. Grund: Die Borsten finden auf glattem Glas keinen Halt → die Borsten sind für die Fortbewegung nötig.</li>
+<li><b>Versuch 2 (feuchte Inseln):</b> Er bleibt auf den feuchten Stellen und meidet das Trockene. Grund: Hautatmung braucht feuchte Haut, sonst trocknet er aus.</li>
+<li><b>Versuch 3 (Licht):</b> Er zieht sich vom Licht zurück. Grund: Lichtsinneszellen am Vorder- und Hinterende; Schutz vor UV-Licht und Austrocknen <span class="src">AB Regenwurm</span>. Vorne reagiert er schneller, weil am Kopfende <b>besonders viele</b> Lichtsinneszellen sitzen <span class="src">Film</span>.</li>
+<li><b>Versuch 4 (Essig):</b> Er weicht vor dem Essigstrich zurück, ohne ihn zu berühren. Mit Kopflappen und Schlund «prüft er den Geschmack der Nahrung» <span class="src">Film</span>. <span class="ext">⚠ Allgemeinwissen: Er hat Sinneszellen für chemische Reize (Geruch/Geschmack) in der Haut und nimmt Essig darum schon aus der Distanz wahr.</span></li>
+</ul>
+<details><summary>Abbildungen ansehen</summary><img src="bilder/natura-s42.jpg" alt="Natura Seite 42"><img src="bilder/natura-s43.jpg" alt="Natura Seite 43"><img src="bilder/ab-regenwurm-1.jpg" alt="AB Regenwurm 1"><img src="bilder/ab-regenwurm-2.jpg" alt="AB Regenwurm 2"></details>
+
+<!-- ================= VERGLEICH ================= -->
+<h2 id="vergleich">9. Plattwurm ↔ Regenwurm vergleichen</h2>
+<p class="goal">Lernziel 4 – genau diese Aufgabe steht auf Natura S.&nbsp;83: «Strudelwurm und Regenwurm wurden früher einer Gruppe zugeordnet, den Würmern. Erläutern Sie, dass dies wenig sinnvoll ist.»</p>
+<div class="scroll"><table>
+<tr><th></th><th>Strudelwurm (Plattwurm)</th><th>Regenwurm / Rotwurm (Ringelwurm)</th></tr>
+<tr><td>Körperform</td><td>flach, ungegliedert<span class="x">Der Strudelwurm ist flach und nicht in Abschnitte gegliedert.</span></td><td>rund, in Segmente gegliedert (aussen + innen)<span class="x">Der Regenwurm ist rund und besteht aus vielen gleichen Segmenten. Die Gliederung zeigt sich auch innen, denn viele Organe wiederholen sich in jedem Segment.</span></td></tr>
+<tr><td>Darm</td><td>verzweigt, blind endend; Mund = After<span class="x">Der Darm ist verzweigt und endet blind. Die Nahrung kommt durch dieselbe Öffnung hinein, durch die Reste wieder hinausgehen.</span></td><td>durchgehend von Mund bis After<span class="x">Der Darm führt vom Mund vorne durch den ganzen Körper bis zum After hinten.</span></td></tr>
+<tr><td>Blutkreislauf</td><td>keiner <span class="ext">⚠ Allgemeinwissen</span><span class="x">Der Strudelwurm hat keine Blutgefässe und keinen Blutkreislauf. ⚠ Das steht nicht ausdrücklich in deinen Unterlagen.</span></td><td>geschlossen, Rücken-/Bauch-/Ringgefässe, Seitenherzen<span class="x">Das Blut fliesst nur in Gefässen (geschlossener Kreislauf). Angetrieben wird es von fünf pulsierenden Ringgefässen, den Seitenherzen.</span></td></tr>
+<tr><td>Körperinneres</td><td>mit Füllgewebe (Mesenchym) gefüllt<span class="x">Zwischen Haut und Darm ist alles mit Füllgewebe ausgefüllt.</span></td><td>mit Körperflüssigkeit gefüllt → Hydroskelett<span class="x">Im Körper ist Flüssigkeit, die vom Hautmuskelschlauch umspannt wird. So entsteht ein Hydroskelett, das den Körper stabil macht.</span></td></tr>
+<tr><td>Nervensystem</td><td>Gehirn + 2 Nervenstränge mit Quersträngen<span class="x">Vorne liegt ein «Gehirn» (Ganglion), von dem zwei Nervenstränge mit Querverbindungen nach hinten ziehen.</span></td><td>Gehirn + Strickleiternervensystem, segmentweise Knoten<span class="x">Im Kopflappen liegt ein Gehirn. Am Bauch verläuft ein Strickleiternervensystem mit einem Nervenknoten in jedem Segment.</span></td></tr>
+<tr><td>Ausscheidung</td><td>einfache Ausscheidungsorgane mit bewimperten Zellen<span class="x">Einfache Ausscheidungsorgane befördern mithilfe bewimperter Zellen Wasser und gelöste Abfallstoffe nach aussen.</span></td><td>2 Ausscheidungsorgane pro Segment (Wimpertrichter)<span class="x">Jedes Segment hat zwei eigene Ausscheidungsorgane, die Abfallstoffe mit einem Wimpertrichter aufnehmen.</span></td></tr>
+<tr><td>Atmung</td><td>Haut <b>(Gemeinsamkeit)</b><span class="x">Der Strudelwurm hat keine Atmungsorgane und atmet durch die Haut.</span></td><td>Haut <b>(Gemeinsamkeit)</b><span class="x">Der Regenwurm hat keine Lunge und atmet durch die Haut. Die Haut muss darum feucht bleiben.</span></td></tr>
+<tr><td>Fortbewegung</td><td>Wimpern + Schleim (gleiten)<span class="x">Wimpern auf der Bauchseite lassen ihn auf einer Schleimschicht dahingleiten.</span></td><td>Ring-/Längsmuskeln + Borsten<span class="x">Ring- und Längsmuskeln ziehen sich abwechselnd zusammen. Die Borsten verankern ihn dabei im Boden, damit er nicht zurückrutscht.</span></td></tr>
+<tr><td>Fortpflanzung</td><td>Zwitter; auch Querteilung <b>(Zwitter = Gemeinsamkeit)</b><span class="x">Er ist Zwitter und kann sich zusätzlich ungeschlechtlich durch Querteilung vermehren.</span></td><td>Zwitter, Kokon<span class="x">Er ist Zwitter. Nach dem gegenseitigen Spermienaustausch entwickeln sich die Eier in einem schützenden Kokon.</span></td></tr>
+<tr><td>Lebensweise</td><td>Wasser (Bach), räuberisch; Verwandte: Parasiten<span class="x">Er lebt im Wasser, z.&nbsp;B. in Bächen, und sucht dort Beutetiere. Seine nahen Verwandten, die Saug- und Bandwürmer, sind Parasiten.</span></td><td>Boden, frisst Pflanzenreste und Erde<span class="x">Er lebt im Boden, frisst verrottende Pflanzenteile und Erde und macht den Boden dabei fruchtbarer.</span></td></tr>
+</table></div>
+<div class="card"><b>Gemeinsamkeiten</b> (die gehören bei jeder Vergleichsfrage dazu!): Beide sind wurmförmig und haben kein hartes Skelett, atmen durch die Haut, sind Zwitter, haben vorne ein «Gehirn» mit Nervensträngen nach hinten und besitzen Ausscheidungsorgane mit Wimpern <span class="src">Natura S.&nbsp;40–43, AB Strudelwürmer, AB Regenwurm</span>.</div>
+<p><b>Fazit:</b> Die beiden sind nur äusserlich «wurmförmig». Im Bau (Segmente, Darm mit After, Blutkreislauf) unterscheiden sie sich stark. Darum gehören sie zu zwei verschiedenen Stämmen <span class="src">Natura S.&nbsp;40–42, 83</span>.</p>
+<details><summary>Natura S. 83 ansehen</summary><img src="bilder/natura-s83.jpg" alt="Natura Seite 83"></details>
+
+<!-- ================= GLIEDERFÜSSER ================= -->
+<h2 id="glieder">10. Gliederfüsser: Klassen zuordnen</h2>
+<p class="goal">Lernziel 6</p>
+<p><b>Gemeinsame Merkmale des Stammes</b>: Aussenskelett aus <b>Chitin</b>, gegliederte Beine, gegliederte Fühler, Körper in Segmente gegliedert. Grösster Tierstamm: über 1 Million Arten, mehr als ¾ aller Tierarten <span class="src">Natura S.&nbsp;45, Natura alt S.&nbsp;151</span>. Weil das Aussenskelett nicht mitwächst, müssen sie sich <b>häuten</b> <span class="src">Natura S.&nbsp;48</span>.</p>
+<p><b>Faustregel: Man ordnet ein Tier über die Anzahl Beine einer Klasse zu</b> <span class="src">Natura alt S.&nbsp;151</span>.</p>
+<div class="scroll"><table>
+<tr><th>Klasse</th><th>Erkennungsmerkmal</th><th>Beispiele</th><th>Weiteres</th></tr>
+<tr><td><b>Insekten</b> (ca. 760&nbsp;000 Arten)</td><td><b>3 Beinpaare</b> (6 Beine), Körper: Kopf – Brust – Hinterleib, meist Flügel<span class="x">Insekten haben sechs Beine (drei Beinpaare), die alle an der Brust sitzen. Ihr Körper ist in Kopf, Brust und Hinterleib gegliedert, und die meisten haben Flügel.</span></td><td>Käfer, Schmetterlinge, Hautflügler (Biene, Wespe), Fliegen/Mücken, Heuschrecken, Libellen, Wanzen (Schnabelkerfe), Läuse, Ohrenkneifer</td><td>Auch Larven haben 3 Beinpaare<span class="x">Auch die meisten Insektenlarven, die oft mit Würmern verwechselt werden, erkennt man an den drei Beinpaaren.</span></td></tr>
+<tr><td><b>Spinnentiere</b> (ca. 30&nbsp;000)</td><td><b>4 Beinpaare</b> (8 Beine), 1 Paar Beintaster, 1 Paar Kieferklauen<span class="x">Spinnentiere haben acht Beine (vier Beinpaare). Dazu kommen vorne ein Paar Beintaster und ein Paar Kieferklauen.</span></td><td>Webspinnen, Weberknechte, Skorpione, Milben</td><td>Giftiger Biss oder Stich; Milben oft Schmarotzer; Skorpion: Beintaster mit Scheren<span class="x">Viele Spinnentiere töten ihre Beute mit einem giftigen Biss oder Stich. Milben sind sehr klein und leben oft als Schmarotzer auf Pflanzen, Tieren oder Menschen. Beim Skorpion tragen die Beintaster Scheren.</span></td></tr>
+<tr><td><b>Krebstiere</b> (ca. 20&nbsp;000)</td><td>meist im Wasser, <b>Kiemen</b>; grössere Krebse: <b>5 Laufbeinpaare</b><span class="x">Die meisten Krebse leben im Wasser, vor allem im Meer, und atmen mit Kiemen. Grössere Krebse haben fünf Laufbeinpaare.</span></td><td>Asseln, Zehnfusskrebse (Krabbe, Flusskrebs), Flohkrebse, Blattfusskrebse, Hüpferlinge</td><td>Kleinkrebse: selten mehr als 14 Beine<span class="x">Bei den nur wenige Millimeter grossen Kleinkrebsen ist der Grundbauplan schwer zu erkennen. Ihre Beinzahl schwankt, liegt aber selten über 14.</span></td></tr>
+<tr><td><b>Tausendfüsser</b> (restliche)</td><td>langer Körper aus vielen Segmenten, <b>mehr als 16 Beine</b><span class="x">Tausendfüsser haben einen langgestreckten Körper aus sehr vielen Segmenten und mehr als 16 Beine.</span></td><td>Hundertfüsser (räuberisch), Doppelfüsser (fressen Laubstreu), Saftkugler</td><td>Kein Tier hat wirklich 1000 Füsse<span class="x">Wirklich tausend Füsse hat keiner. Hundertfüsser leben räuberisch, Doppelfüsser fressen abgestorbene Pflanzenteile und helfen beim Abbau der Laubstreu im Wald.</span></td></tr>
+</table></div>
+<p><span class="src">Natura alt S.&nbsp;151, Natura S.&nbsp;45</span></p>
+<div class="card"><b>Zuordnungs-Übung (Natura S.&nbsp;83, Aufgabe 1):</b> besitzen acht Beine → Spinnen · haben drei Beinpaare → Insekten · hartes Aussenskelett → Insekten (und Spinnen; beides Gliederfüsser) · atmen über die Haut → Amphibien <span class="ext">⚠ Allgemeinwissen</span> (Milchdrüsen, Fell, Federn gehören zu den Wirbeltieren und sind nicht dein Thema).</div>
+<details><summary>Übersicht Natura alt S. 151 ansehen</summary><img src="bilder/natura-alt-gliederfuesser.jpg" alt="Natura alt Gliederfüsser"><img src="bilder/natura-s45.jpg" alt="Natura Seite 45"></details>
+
+<!-- ================= INSEKT ================= -->
+<h2 id="insekt">11. Insekt im Detail: die Honigbiene</h2>
+<p class="goal">Lernziel 8 – Biene: <b>beschriften</b>, nicht skizzieren</p>
+<h3>Äusserer Bau</h3>
+<ul>
+<li><b>Kopf</b>: 2 Komplexaugen (aus vielen Einzelaugen), 2 gegliederte Fühler (tasten, riechen), Mundwerkzeuge. Aufgabe: Orientierung und Nahrungsaufnahme <span class="src">Natura S.&nbsp;44–45</span></li>
+<li><b>Brust</b>: verwachsene stabile Platten; oben 2 Flügelpaare (häutig, Ausfaltungen des Aussenskeletts, Flügeladern), unten 3 Beinpaare. Gefüllt mit kräftiger Flugmuskulatur <span class="src">Natura S.&nbsp;45</span></li>
+<li><b>Hinterleib</b>: ringförmige Segmente, beweglich verbunden; seitlich Atemöffnungen; enthält Organe für Stoffwechsel und Fortpflanzung <span class="src">Natura S.&nbsp;45</span></li>
+</ul>
+<h3>Beschriftung Arbeitsblatt A2 (Lösung)</h3>
+<p>1 Vorderflügelpaar · 2 Hinterflügelpaar · 3 Hinterleibsringe (-segmente) · 4 Atemöffnungen/Tracheenöffnungen · 5 Kiefer · 6 Saugrüssel · 7 Putzbein · 8 Hüfte · 9 Schenkelring · 10 Schenkel · 11 Schiene · 12 Fuss · 13 Höschen am Sammelbein · 14 Kamm · 15 Bürste · 16 Oberschlundganglion («Gehirn») · 17 Darm · 18 Röhrenherz · 19 Bauchmark (Nervensystem) · 20 Ausscheidungsorgan · 21 Eierstock <span class="src">AB A2 Lösung</span></p>
+<p>Farben: Nervensystem gelb, Verdauung grün, Ausscheidung lila, Geschlechtsorgane orange <span class="src">AB A2</span>.</p>
+<h3>Sammelbein (Hinterbein der Arbeiterin)</h3>
+<p>Hüfte → Schenkelring → Schenkel → Schiene mit <b>Körbchen</b> (Pollentasche; voll mit Pollen = «Höschen») → <b>Pollenkamm</b> → <b>Pollenschieber</b> → Fuss mit <b>Bürste</b> auf der Innenseite des 1. Fussglieds <span class="src">AB Sammelbein Lösung</span>. Die Biene bürstet den Pollen mit dem breiten Fussglied ab und sammelt ihn aussen an der Schiene; lange Borsten um die Schiene bilden das Körbchen <span class="src">Natura S.&nbsp;50</span>.</p>
+<details><summary>Arbeitsblätter ansehen (leer und Lösung)</summary><img src="bilder/ab-biene-leer.jpg" alt="AB Biene leer"><img src="bilder/ab-biene-loesung.jpg" alt="AB Biene Lösung"><img src="bilder/ab-sammelbein-leer.jpg" alt="Sammelbein leer"><img src="bilder/ab-sammelbein-loesung.jpg" alt="Sammelbein Lösung"><img src="bilder/natura-s44.jpg" alt="Natura Seite 44"></details>
+
+<h3>Innere Organe und Physiologie</h3>
+<ul>
+<li><b>Skelett und Muskeln</b>: Muskeln liegen <i>innen</i> im Aussenskelett. Pro Gelenk 2 Muskeln: <b>Beuger</b> (zieht sich zusammen → Bein knickt) und <b>Strecker</b> (→ Bein gestreckt). Gegenspieler = <b>Antagonisten</b>, Gegenspielerprinzip (auch bei Wirbeltieren) <span class="src">Natura S.&nbsp;46</span></li>
+<li><b>Offener Blutkreislauf</b>: farbloses Blut (Körperflüssigkeit) transportiert Nährstoffe, Abfallstoffe, Wärme. <b>Röhrenherz</b> im Hinterleib saugt Blut durch seitliche Öffnungen an, pumpt es nach vorn; im Brustbereich tritt es aus, umspült die Organe, fliesst zurück. Zusätzliche kleine Herzen z.&nbsp;B. am Grund der Fühler <span class="src">Natura S.&nbsp;46–47</span></li>
+<li><b>Tracheenatmung</b>: Luft gelangt durch Atemöffnungen (<b>Stigmata</b>) an Brust und Hinterleib in die Tracheen, feine Röhren bis zu allen Organen. O₂ hinein, CO₂ hinaus. Pumpbewegungen des Hinterleibs unterstützen; beim Fliegen auch die Flugmuskeln <span class="src">Natura S.&nbsp;47</span>. Das Blut transportiert also <i>keinen</i> Sauerstoff <span class="ext">⚠ Allgemeinwissen</span>.</li>
+<li><b>Nervensystem</b>: Gehirn über dem Mundbereich (Oberschlundganglion) + 2 Bauchmarkstränge, in jedem Segment verbunden → <b>Strickleiternervensystem</b> wie beim Ringelwurm <span class="src">Natura S.&nbsp;47, AB A2</span></li>
+<li>Warum kann ein Insekt nicht wie der Regenwurm durch die Haut atmen? Weil das harte Chitin-Aussenskelett die Haut bedeckt <span class="ext">⚠ meine Herleitung (Natura S.&nbsp;47, Aufg. 4)</span></li>
+</ul>
+<details><summary>Abbildungen ansehen</summary><img src="bilder/natura-s46.jpg" alt="Natura Seite 46"><img src="bilder/natura-s47.jpg" alt="Natura Seite 47"></details>
+
+<h3>Entwicklung</h3>
+<div class="scroll"><table>
+<tr><th></th><th>Vollständige Verwandlung (mit Puppe)</th><th>Unvollständige Verwandlung (ohne Puppe)</th></tr>
+<tr><td>Ablauf</td><td>Ei → mehrere Larvenstadien (Raupe, Häutungen) → <b>Puppe</b> (keine Nahrung, keine Bewegung, Umbau der Organe = <b>Metamorphose</b>) → <b>Imago</b><span class="x">Aus dem Ei schlüpft eine Larve (beim Schmetterling die Raupe), die ganz anders aussieht als das erwachsene Tier: Sie hat keine Flügel und keine Geschlechtsorgane. Sie frisst, wächst und häutet sich mehrmals. Dann verpuppt sie sich. In der Puppe bewegt sie sich nicht und frisst nicht, aber innen werden die Organe umgebaut (Metamorphose). Am Schluss schlüpft das erwachsene Insekt, die Imago.</span></td><td>Ei → Larven, die dem Erwachsenen schon ähnlich sind (Flügelanlagen sichtbar) → mit jeder Häutung ähnlicher → Imago<span class="x">Aus dem Ei schlüpft eine Larve, die schon fast wie ein erwachsenes Tier aussieht; die Anlagen der Flügel sind bereits zu erkennen. Mit jeder Häutung wird sie grösser und dem erwachsenen Insekt ähnlicher. Nach der letzten Häutung ist das Tier geschlechtsreif und flugfähig. Ein Puppenstadium gibt es nicht.</span></td></tr>
+<tr><td>Beispiel</td><td>Kleiner Fuchs (Raupe auf Brennnesseln), Käfer, <b>Bienen</b></td><td>Heupferd (7 Häutungen), Wanzen, Libellen</td></tr>
+</table></div>
+<p><span class="src">Natura S.&nbsp;48–49</span>. Häutung: Das alte Aussenskelett reisst auf, das neue ist zuerst weich, wird gedehnt und härtet aus. <b>Imago</b> = erwachsenes, geschlechtsreifes Insekt mit Flügeln.</p>
+<details><summary>Abbildungen ansehen</summary><img src="bilder/natura-s48.jpg" alt="Natura Seite 48"><img src="bilder/natura-s49.jpg" alt="Natura Seite 49"></details>
+
+<h3>Angepasstheiten (Struktur und Funktion)</h3>
+<p><b>Grundform Laufbein</b>: Hüfte – Schenkelring – Schenkel – Schiene – Fuss <span class="src">Natura S.&nbsp;50</span></p>
+<div class="scroll"><table>
+<tr><th>Bein</th><th>Tier</th><th>Besonderheit</th></tr>
+<tr><td>Laufbein</td><td>Sandlaufkäfer</td><td>lange Beine → schnell<span class="x">Sandlaufkäfer haben lange Laufbeine und können damit sehr schnell laufen, um Beute zu jagen. So sah auch das ursprüngliche Insektenbein aus.</span></td></tr>
+<tr><td>Sprungbein</td><td>Heuschrecke</td><td>lang, kräftiger Schenkel<span class="x">Bei Heuschrecken sind die Hinterbeine besonders lang und haben einen kräftigen Schenkel. Damit können sie mit grossen Sprüngen vor Feinden fliehen.</span></td></tr>
+<tr><td>Klammerbein</td><td>Kopflaus</td><td>gebogene Fusskralle umgreift ein Haar<span class="x">Kopfläuse leben im Fell bzw. in den Haaren von Säugetieren. Ihre Fusskralle ist so gebogen, dass sie ein glattes Haar umgreifen und sich daran festhalten kann.</span></td></tr>
+<tr><td>Fangbein</td><td>Gottesanbeterin</td><td>schnellt vor, Beute zwischen Schenkel und Schiene<span class="x">Die Gottesanbeterin lebt räuberisch. Sie lässt ihre Fangbeine blitzschnell vorschnellen und klemmt die Beute zwischen Schenkel und Schiene ein.</span></td></tr>
+<tr><td>Sammelbein</td><td>Honigbiene</td><td>Körbchen an der Schiene, Bürste am Fuss<span class="x">Die Biene bürstet den Pollen mit dem breiten ersten Fussglied ab und sammelt ihn aussen an der Schiene. Lange Borsten rund um die Schiene bilden eine Pollentasche, das Körbchen.</span></td></tr>
+</table></div>
+<div class="scroll"><table>
+<tr><th>Mundwerkzeug</th><th>Tier</th><th>Gebildet aus</th></tr>
+<tr><td>kauend-beissend (Ursprungsform)</td><td>Sandlaufkäfer</td><td>Ober-/Unterlippe, Ober-/Unterkiefer<span class="x">Das ist die ursprüngliche Form der Insekten-Mundwerkzeuge. Mit kräftigen, sichelförmigen Oberkiefern beisst der Sandlaufkäfer zu und zerkleinert seine Beute.</span></td></tr>
+<tr><td>langer Saugrüssel (aufrollbar)</td><td>Schmetterling</td><td>beide Unterkiefer<span class="x">Die beiden Unterkiefer bilden zusammen ein langes Saugrohr. Damit saugt der Schmetterling Nektar aus tiefen, engen Blüten. Wenn er es nicht braucht, rollt er es auf.</span></td></tr>
+<tr><td>leckend-saugend (Leck-Saugrüssel)</td><td>Stubenfliege</td><td>Unterlippe<span class="x">Die Unterlippe bildet einen kurzen, breiten Rüssel, mit dem die Fliege Flüssigkeiten aufleckt.</span></td></tr>
+<tr><td>leckend-saugend mit Zunge</td><td><b>Honigbiene</b></td><td>Unterlippe bildet Saugrüssel, Zunge mit löffelartigem Ende<span class="x">Die Unterlippe bildet einen dünnen Saugrüssel. Darin bewegt sich eine Zunge auf und ab, deren löffelartiges Ende Flüssigkeiten wie Nektar aufleckt.</span></td></tr>
+<tr><td>stechend-saugend (Stechrüssel)</td><td>Stechmücke</td><td>Oberkiefer = Stechröhre, geführt in der Rinne der Unterlippe<span class="x">Der Oberkiefer ist zu einer stabilen, hohlen Stechröhre umgebildet. Damit sticht die Mücke durch die Haut, gibt Speichel in die Wunde ab und saugt Blut an. Die Röhre wird dabei in einer Rinne der Unterlippe geführt.</span></td></tr>
+</table></div>
+<p><span class="src">Natura S.&nbsp;50–51</span>. Die Biene ist doppelt angepasst: Ihr Sammelbein dient dem Pollen, ihr Leck-Saugrüssel dem Nektar.</p>
+<details><summary>Abbildungen ansehen</summary><img src="bilder/natura-s50.jpg" alt="Natura Seite 50"><img src="bilder/natura-s51.jpg" alt="Natura Seite 51"></details>
+
+<!-- ================= SKIZZEN ================= -->
+<h2 id="skizzen">12. Skizzen-Training</h2>
+<div class="card sk"><h3>So sieht eine Skizze im Unterricht aus (deine eigenen Praktikums-Skizzen)</h3>
+<ul>
+<li>Oben links: <b>Objekt + Zustand</b> («Hydra, gestreckt»), <b>«Ganzes Tier»</b>, <b>Ansicht</b> («Aufsicht»), <b>Vergrösserung</b> («20x»)</li>
+<li>Oben rechts: Datum und Name</li>
+<li>Bleistift, gross, nur Umrisse + Punktierung (keine Schattierung)</li>
+<li>Beschriftungslinien mit Lineal, gerade, ohne Kreuzungen; Text aussen neben der Zeichnung</li>
+</ul>
+<p class="goal">Dieses Format habe ich aus deinen zwei Skizzen abgelesen. Ob der Lehrer es so verlangt, steht nirgends schriftlich. Es ist aber das, was ihr im Praktikum gemacht habt.</p>
+<p><b>Hydra – muss beschriftet sein</b> (Skript 4.2): Mundöffnung, Tentakel, Gastralraum, Fussscheibe, evtl. Knospe, Hoden (oben), Ovar (unten). <b>Auf deiner Skizze fehlt die Mundöffnung.</b></p>
+<p><b>Planarie / Strudelwurm – muss beschriftet sein</b> (Natura S.&nbsp;40, AB Strudelwürmer): Augen, «Gehirn», Nervenstränge, Darm (verzweigt!), muskulöser Schlund (Pharynx), Mund/After.</p>
+<details><summary>Deine Skizzen ansehen</summary><img src="bilder/eigene-skizze-hydra.jpg" alt="Eigene Skizze Hydra"><img src="bilder/eigene-skizze-planarie.jpg" alt="Eigene Skizze Planarie"></details>
+</div>
+
+<p>So gehst du vor: Zuerst aus dem Kopf skizzieren und mit der Checkliste beschriften. Erst danach die Vorlage aufklappen und vergleichen. <b>Biene: nur beschriften</b> (leeres AB A2 und Sammelbein oben unter «Insekt»).</p>
+
+<div class="card sk"><h3>A) Hydra – Längsschnitt</h3>
+Muss drauf: Tentakel, Mundöffnung, Gastralraum (Magen-Darm-Raum), Ektoderm, Stützlamelle, Entoderm, Fussscheibe; evtl. Knospe, Hoden (oben), Ovar/Ei (unten) <span class="src">Skript Aufgabe 4.2</span>.<br>
+Achte darauf: <b>Nur eine Öffnung</b>; die Wand ist zweischichtig bis in die Tentakel und die Knospe.
+<details><summary>Vorlage</summary><img src="bilder/skript-hydra-1.jpg" alt="Skript Hydra"><img src="bilder/skript-hydra-2.jpg" alt="Skript Hydra Seite 2"></details></div>
+
+<div class="card sk"><h3>B) Hydra – Körperwand (Ausschnitt)</h3>
+Muss drauf: Ektoderm (Hautmuskelzelle, Sinneszelle, Nesselzelle, Ersatzzellen), Stützlamelle mit Nervenzellen, Entoderm (Fresszelle mit Geisseln, Drüsenzelle).
+<details><summary>Vorlage</summary><img src="bilder/natura-s38.jpg" alt="Natura S. 38"></details></div>
+
+<div class="card sk"><h3>C) Nesselzelle – Ruhe und Entladung</h3>
+3 Stadien: geschlossen → Deckel offen, Stilett vorne → Faden ganz ausgestülpt. Beschriften: Kapselwand, Deckel, Auslösungsstift, Stilettapparat, Gift, Nesselfaden, Zellkern <span class="src">AB Süsswasserpolyp</span>.
+<details><summary>Vorlage</summary><img src="bilder/natura-s39.jpg" alt="Natura S. 39"></details></div>
+
+<div class="card sk"><h3>D) Generationswechsel Ohrenqualle (Kreis)</h3>
+♂/♀ Qualle → Spermien, befruchtete Eier → Wimperlarve → Polyp → Abschnüren der Quallenlarven → Qualle. Markieren, wo die Fortpflanzung geschlechtlich bzw. ungeschlechtlich ist.
+<details><summary>Vorlage</summary><img src="bilder/natura-s39.jpg" alt="Natura S. 39"></details></div>
+
+<div class="card sk"><h3>E) Strudelwurm – Körperbau von oben</h3>
+Augen, «Gehirn», 2 Nervenstränge, verzweigter Darm, muskulöser Schlund (Pharynx), Mund/After.
+<details><summary>Vorlage</summary><img src="bilder/natura-s40.jpg" alt="Natura S. 40"></details></div>
+
+<div class="card sk"><h3>F) Plattwurm – Querschnitt</h3>
+Ektoderm mit Wimpern (unten), Darm (Entoderm), Mesenchym/Füllgewebe, quer verlaufende Muskeln, Ringmuskulatur, Nervenstränge, Ausscheidungsorgan, Keimdrüsen/Geschlechtszellen <span class="src">AB Strudelwürmer Abb.&nbsp;1</span>.
+<details><summary>Vorlage</summary><img src="bilder/ab-strudelwurm-1.jpg" alt="AB Strudelwurm"></details></div>
+
+<div class="card sk"><h3>G) Lebenszyklus Kleiner Leberegel</h3>
+Schaf (Endwirt) → Ei im Kot → Schnecke (1. Zwischenwirt; Wimperlarve → Schwanzlarven) → Schleimbällchen → Ameise (2. Zwischenwirt; «Hirnwurm») → Ameise an der Grasspitze → Schaf.
+<details><summary>Vorlage</summary><img src="bilder/natura-s41.jpg" alt="Natura S. 41"></details></div>
+
+<div class="card sk"><h3>H) Lebenszyklus Fuchsbandwurm (+ Rinderbandwurm)</h3>
+Fuchs (Endwirt, geschlechtlich) → Endglied mit Eiern → Ei mit Junglarve → Maus (Zwischenwirt, Brutkapseln in der Leber, ungeschlechtlich) → Fuchs. Daneben: Mensch als <b>Fehlwirt</b>.
+<details><summary>Vorlage</summary><img src="bilder/ab-fuchsbandwurm.jpg" alt="AB Fuchsbandwurm"></details></div>
+
+<div class="card sk"><h3>I) Regenwurm – Querschnitt</h3>
+Haut, Ringmuskel, Längsmuskel, Borsten, Darm, Rückengefäss, Bauchgefäss, Ringgefäss, Bauchmark, Ausscheidungsorgan.
+<details><summary>Vorlage</summary><img src="bilder/ab-regenwurm-1.jpg" alt="AB Regenwurm"><img src="bilder/natura-s43.jpg" alt="Natura S. 43"></details></div>
+
+<div class="card sk"><h3>J) Regenwurm – Längsbau und Fortbewegung</h3>
+Segmente, Mund, Speiseröhre, Darm, Rückengefäss, Seitenherzen, Bauchgefäss, Nervensystem, Ausscheidungsorgan, Gürtel. Dazu die Fortbewegung in 3–4 Schritten (dünn-lang / dick-kurz).
+<details><summary>Vorlage</summary><img src="bilder/natura-s42.jpg" alt="Natura S. 42"><img src="bilder/natura-s43.jpg" alt="Natura S. 43"></details></div>
+
+<div class="card sk"><h3>K) Insektenentwicklung (zwei Kreise)</h3>
+Schmetterling mit Puppe ↔ Heuschrecke ohne Puppe.
+<details><summary>Vorlage</summary><img src="bilder/natura-s48.jpg" alt="Natura S. 48"><img src="bilder/natura-s49.jpg" alt="Natura S. 49"></details></div>
+
+<div class="extbox">⚠ Welche Skizzen genau im Test kommen, weiss ich nicht. Die Liste oben ist meine Auswahl aus allen Abbildungen in deinen Unterlagen, die zu den Lernzielen passen.</div>
+
+<!-- ================= FRAGEN ================= -->
+<h2 id="fragen">13. Übungsfragen</h2>
+<p>Die meisten stammen aus den Aufgaben im Buch und auf deinen Blättern. Erst selbst antworten, dann aufklappen.</p>
+<details><summary>Welche zwei Gewebe hat die Hydra, welche Zellen gibt es darin, und was liegt dazwischen?</summary><p>Innen das Entoderm (Fresszellen/Epithelmuskelzellen, Drüsenzellen), aussen das Ektoderm (Hautmuskelzellen, Sinneszellen, Nesselzellen). Dazwischen die Stützlamelle mit Nervenzellen; Ersatzzellen liegen zwischen den Zellen <span class="src">AB Süsswasserpolyp, Skript, Natura S.&nbsp;38</span>.</p></details>
+<details><summary>Erkläre den Ablauf beim Abschuss einer Nesselzelle.</summary><p>Berührung des Auslösungsstifts → Deckel springt auf → Flüssigkeitsdruck stülpt den Faden aus → Stilett durchdringt die Beute → Gift lähmt <span class="src">Skript, Natura S.&nbsp;38–39</span>.</p></details>
+<details><summary>Was ist ein Generationswechsel? Beispiel?</summary><p>Ein regelmässiger Wechsel zwischen geschlechtlicher und ungeschlechtlicher Fortpflanzung. Bei der Ohrenqualle pflanzt sich die Qualle geschlechtlich fort, der Polyp ungeschlechtlich. Auch beim Leberegel kommen beide Formen vor (Endwirt bzw. Schnecke) <span class="src">Natura S.&nbsp;39–41</span>.</p></details>
+<details><summary>Stelle die Entwicklung der Saugwürmer in einem Fliessschema dar. (Natura S. 41, Aufg. 1)</summary><p>Siehe Abschnitt 6: Schaf → Ei → Schnecke → Schleimbällchen → Ameise → Schaf.</p></details>
+<details><summary>Warum produzieren Bandwürmer enorm viele Eier? (Natura S. 41, Aufg. 2)</summary><p>Die Chance ist sehr klein, dass ein Ei genau vom richtigen Zwischenwirt gefressen wird und der Zyklus weitergeht. Mit sehr vielen Eiern kommen trotzdem genug durch <span class="src">Natura S.&nbsp;41 (sinngemäss beim Leberegel)</span>.</p></details>
+<details><summary>Welche Anpassungen an das Parasitenleben zeigen Saug- und Bandwürmer?</summary><p>Haftorgane (Saugnäpfe, Haken), beim Bandwurm kein Darm (Nahrung über die Haut), sehr viele Eier, Wirtswechsel <span class="src">AB Strudelwürmer, Natura S.&nbsp;41</span>.</p></details>
+<details><summary>Beschreibe die Fortbewegung des Regenwurms. (Natura S. 43, Aufg. 1)</summary><p>Siehe Abschnitt 8: Ringmuskeln → dünn und lang, Längsmuskeln → dick und kurz; Borsten verankern.</p></details>
+<details><summary>Warum ist ein Regenwurm gut für die Ernte? (Natura S. 43, Aufg. 2)</summary><p>Mit Würmern: 10,5&nbsp;g / 110 Körner statt 7,1&nbsp;g / 60. Gründe: Durchlüftung, Wasser dringt ein, mineralstoffreicher Kot (Humus, Düngung), Durchmischung <span class="src">Natura S.&nbsp;43</span>.</p></details>
+<details><summary>Warum ist es wenig sinnvoll, Strudelwurm und Regenwurm als «Würmer» zusammenzufassen? (Natura S. 83)</summary><p>Siehe Tabelle in Abschnitt 9.</p></details>
+<details><summary>Nenne drei typische Merkmale erwachsener Insekten. (Natura S. 45, Aufg. 1)</summary><p>3 Körperabschnitte (Kopf, Brust, Hinterleib), 6 Gliederbeine (3 Paare), Aussenskelett aus Chitin; dazu meist Flügel und Fühler <span class="src">Natura S.&nbsp;44–45</span>.</p></details>
+<details><summary>Warum ist das harte Aussenskelett eine Voraussetzung für den Erfolg der Insekten? (Natura S. 45, Aufg. 3)</summary><p>Es schützt und stützt; Beine, Flügel und Mundwerkzeuge lassen sich daraus vielfältig abwandeln <span class="src">Natura S.&nbsp;44–51</span>. <span class="ext">⚠ Allgemeinwissen: Es schützt auch vor Austrocknung, was das Leben an Land möglich macht.</span></p></details>
+<details><summary>Beschreibe das Gegenspielerprinzip am Gliederbein. (Natura S. 47, Aufg. 1)</summary><p>Beuger zusammen + Strecker erschlafft → Bein knickt; umgekehrt → Bein streckt sich <span class="src">Natura S.&nbsp;46</span>.</p></details>
+<details><summary>Vergleiche den Weg der Atemgase bei Insekten und Wirbeltieren. (Natura S. 47, Aufg. 3)</summary><p>Insekt: Luft → Stigmata → Tracheen direkt zu den Organen <span class="src">Natura S.&nbsp;47</span>. <span class="ext">⚠ Allgemeinwissen: Wirbeltier: Luft → Lunge → Blut transportiert O₂ zu den Organen.</span></p></details>
+<details><summary>Warum ist «Puppenruhe» ein ungenauer Begriff? (Natura S. 49, Aufg. 2)</summary><p>Die Puppe bewegt sich zwar nicht und frisst nicht, aber innen werden die Organe vollständig umgebaut. Es ist also keine Ruhe <span class="src">Natura S.&nbsp;48</span>.</p></details>
+<details><summary>Ordne zu: Spinne, Assel, Hundertfüsser, Libelle, Milbe, Flusskrebs, Wespe</summary><p>Spinnentiere: Spinne, Milbe · Krebstiere: Assel, Flusskrebs · Tausendfüsser: Hundertfüsser · Insekten: Libelle, Wespe <span class="src">Natura alt S.&nbsp;151</span>.</p></details>
+<details><summary>Wie ist die Honigbiene durch Beine und Mundwerkzeuge an ihre Lebensweise angepasst? (Natura S. 51, Aufg. 4)</summary><p>Sammelbein (Bürste, Kamm, Körbchen) für Pollen; leckend-saugender Rüssel mit Zunge für Nektar <span class="src">Natura S.&nbsp;50–51, AB Sammelbein</span>.</p></details>
+
+<p style="margin-top:3em;color:var(--mut);font-size:.85rem">Quellen: Bio-Ordner (Hydra-Skript, AB Süsswasserpolyp, deine Notiz vom 16.&nbsp;Sept., AB Strudelwürmer, AB Leberegel, AB Fuchsbandwurm, AB Regenwurm, Praktikum Rotwurm, AB A2 Biene, AB Sammelbein, Natura alt S.&nbsp;151, Film «Rundwürmer – D423», vom Ton transkribiert) und Natura S.&nbsp;38–51, 83. Das Hydra-Video hat keinen Ton und ist darum nicht eingearbeitet.</p>
+</main>
+<button id="allx" type="button">Alle Sätze zeigen</button>
+<script>
+document.querySelectorAll('td').forEach(function(td){
+  var x=td.querySelector('.x'); if(!x) return;
+  var b=document.createElement('button'); b.type='button'; b.className='xb'; b.textContent='Satz';
+  b.addEventListener('click',function(){td.classList.toggle('open');});
+  td.insertBefore(b,x);
+});
+var all=document.getElementById('allx');
+all.addEventListener('click',function(){
+  var on=document.body.classList.toggle('allx');
+  all.textContent=on?'Sätze ausblenden':'Alle Sätze zeigen';
+});
+</script>
+</body>
+</html>

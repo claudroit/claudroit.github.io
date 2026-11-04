@@ -1,0 +1,71 @@
+// Answer rules against every word: node französisch/tests.cjs
+const fs = require('fs'), path = require('path');
+const WORDS = require('./words-data.js');
+global.WORDS = WORDS;
+const { GROUPS } = require('./groups-data.js');
+const { checkFr, shownFr, mascFr } = new Function(fs.readFileSync(path.join(__dirname, 'check.js'), 'utf8') + ';return { checkFr, shownFr, mascFr };')();
+let bad = 0;
+const fail = (...a) => { bad++; console.log('FAIL', ...a); };
+const ids = new Set(WORDS.map(w => w.id));
+if (ids.size !== WORDS.length) fail('duplicate ids');
+for (const g of GROUPS) if (g.missing.length) fail('group', g.id, 'has unknown words', g.missing);
+// every word typed exactly as printed is right
+for (const w of WORDS) if (checkFr(w, shownFr(w.fr), [], WORDS).result !== 'right') fail('own', w.fr);
+const t = (fr, typed, want) => {
+  const w = WORDS.find(x => x.fr === fr);
+  if (!w) return fail('missing word', fr);
+  const others = WORDS.filter(x => x !== w && x.de === w.de);
+  const r = checkFr(w, typed, others, WORDS);
+  if (r.result !== want) fail(JSON.stringify(fr), JSON.stringify(typed), r.result, 'want', want);
+};
+t('épouser qn', 'épouser', 'right');
+t('épouser qn', 'Épouser quelqu\'un', 'wrong');
+t('épouser qn', 'epouser qn', 'accent');
+t('se marier (avec qn)', 'se marier', 'right');
+t('se marier (avec qn)', 'se marier avec qn', 'right');
+t('se marier (avec qn)', 'marier', 'wrong');
+t('(être) enceinte', 'enceinte', 'right');
+t('(être) enceinte', 'être enceinte', 'right');
+t('fiancé, fiancée', 'fiancé fiancée', 'right');
+t('fiancé, fiancée', 'fiancé/fiancée', 'right');
+t('fiancé, fiancée', 'fiancé', 'fem');
+t('un, une célibataire', 'un célibataire', 'fem');
+t('tomber amoureux, amoureuse de qn', 'tomber amoureux de qn', 'fem');
+t('un compagnon, une compagne', 'un compagnon', 'fem');
+t("l'époux (m), l'épouse (f)", "l'époux, l'épouse", 'right');
+t("l'époux (m), l'épouse (f)", "l'époux", 'fem');
+t('un couple', 'couple', 'article');
+t('la jalousie', 'jalousie', 'article');
+t('la jalousie', 'le jalousie', 'wrong');
+t('mon cœur', 'mon coeur', 'right');
+t('gay/gai, gaie', 'gai, gaie', 'right');
+t('gay/gai, gaie', 'gay', 'fem');
+t('homosexuel, homosexuelle', 'gai, gaie', 'right');           // same German
+t('taper qn', 'frapper qn', 'right');                          // same German: jdn schlagen
+t('s\'occuper de qn/qc', "s'occuper de", 'right');
+t('s\'occuper de qn/qc', "s'occuper de qn", 'right');
+t('personne … ne', 'personne ne', 'right');
+t('personne … ne', 'ne personne', 'wrong');
+t('Ça suffit!', 'ca suffit', 'accent');
+t('Ça suffit!', 'ça suffit !', 'right');
+t('Fiche-moi la paix!', 'fiche moi la paix', 'dash');
+t('Quel idiot! Quelle idiote!', 'Quel idiot!', 'fem');
+t('un monsieur; des messieurs (pl)', 'un monsieur', 'right');
+t('amical, amicale; amicaux (mpl)', 'amical, amicale', 'right');
+t('interdire qc à qn/à qn de faire qc', 'interdire qc à qn', 'right');
+t('interdire qc à qn/à qn de faire qc', 'interdire à qn de faire qc', 'right');
+t('traiter qn (comme …)', 'traiter qn', 'right');
+t('traiter qn (comme …)', 'traiter qn comme', 'right');
+t('en avoir assez (de qc)', 'en avoir assez', 'right');
+t('le harcèlement', 'le mobbing', 'right');                    // same German: Mobbing
+t("l'homme (m)", 'un être humain', 'right');                   // same German: Mensch
+t('chaque', 'chacun', 'wrong');
+const other = (fr, typed, want) => { const w = WORDS.find(x => x.fr === fr); const r = checkFr(w, typed, [], WORDS); if (r.other?.fr !== want) fail('other', fr, typed, r.other?.fr); };
+other('chaque', 'chacun, chacune', 'chacun, chacune');
+other('le genre', 'le sexe', 'le sexe');
+const m = (fr, want) => { const got = mascFr(fr); if (got !== want) fail('masc', fr, got); };
+m('rendre qn heureux, heureuse', 'rendre qn heureux');
+m('un, une camarade de classe', 'un camarade de classe');
+m('Il est con! Elle est conne!', 'Il est con!');
+console.log(WORDS.length, 'words,', GROUPS.length, 'groups,', bad ? bad + ' failures' : 'all checks pass');
+process.exit(bad ? 1 : 0);

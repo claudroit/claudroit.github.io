@@ -53,12 +53,12 @@ function initWords({ $, getState, save, show }) {
   function ask(w) {
     word = w; checked = false;
     const k = session.kind;
-    $('#ask-mode').textContent = k === 'first' ? 'Erster Durchgang' : k === 'practice' ? 'Üben' : k === 'group' ? 'Verwechslungsgefahr' : 'Abschlusstest';
-    const loose = k === 'practice' || k === 'group';
+    $('#ask-mode').textContent = k === 'first' ? 'Erster Durchgang' : k === 'practice' ? 'Üben'  : 'Abschlusstest';
+    const loose = k === 'practice';
     $('#ask-progress').textContent = loose ? `noch ${session.queue.length - session.i}` : `${session.i + 1}/${session.total}`;
     const done = loose ? session.i / Math.max(1, session.queue.length) : session.i / Math.max(1, session.total);
     $('#ask-bar').style.width = `${Math.round(done * 1000) / 10}%`;
-    $('#ask-meta').textContent = k === 'group' ? session.title : `${w.group} · ${w.section}`;
+    $('#ask-meta').textContent = `${w.group} · ${w.section}`;
     $('#ask-de').textContent = w.de;
     const input = $('#ask-input');
     input.value = ''; input.readOnly = false; input.dataset.result = '';
@@ -123,14 +123,6 @@ function initWords({ $, getState, save, show }) {
   // ---------- the three runs ----------
   function record(perfect) {
     const st = S(), s = st.s, id = word.id;
-    if (session.kind === 'group') {
-      // a group drill leaves the chapter progress alone: a miss just comes back three words later
-      if (!perfect) {
-        if (!session.misses.includes(id)) session.misses.push(id);
-        session.queue.splice(Math.min(session.queue.length, session.i + 4), 0, id);
-      }
-      return;
-    }
     if (session.kind === 'first') {
       s[id] = perfect ? { k: 1 } : { k: 0, st: 0 };
       st.miss = st.miss.filter(x => x !== id);
@@ -167,19 +159,7 @@ function initWords({ $, getState, save, show }) {
     const st = S(), c = counts();
     const list = $('#done-list'), nextBtn = $('#done-next');
     list.innerHTML = '';
-    if (session.kind === 'group') {
-      const g = getState(), miss = session.misses;
-      g.groups ||= {};
-      for (const gid of session.groupIds) g.groups[gid] = { t: Date.now(), wrong: miss.filter(id => session.ids.has(gid + ':' + id)).length };
-      save();
-      const after = GROUPS.findIndex(x => x.id === session.groupIds[0]) + 1;
-      const nextGroup = session.groupIds.length === 1 && GROUPS[after];
-      $('#done-title').textContent = miss.length ? `Fertig, ${miss.length} ${miss.length === 1 ? 'Wort war' : 'Wörter waren'} beim ersten Mal falsch` : 'Alles beim ersten Mal richtig';
-      $('#done-text').textContent = miss.length ? 'Die hier nochmal anschauen:' : '';
-      list.innerHTML = miss.map(id => { const w = byId.get(id); return `<span class="chip">${esc(w.de)} → <b lang="fr">${esc(shownFr(w.fr))}</b></span>`; }).join('');
-      nextBtn.textContent = nextGroup ? `Weiter: ${nextGroup.title}` : 'Zu den Wörtern';
-      nextBtn.onclick = nextGroup ? () => startGroup([nextGroup.id]) : open;
-    } else if (session.kind === 'first') {
+    if (session.kind === 'first') {
       $('#done-title').textContent = 'Erster Durchgang fertig';
       $('#done-text').textContent = `${c.kann} Wörter kannst du schon, ${c.lernen} übst du jetzt.`;
       nextBtn.textContent = c.lernen ? `${c.lernen} Wörter üben` : 'Zum Abschlusstest';
@@ -233,28 +213,6 @@ function initWords({ $, getState, save, show }) {
     ask(byId.get(session.queue[session.i]));
   }
 
-  // one confusable group, or all of them mixed
-  function startGroup(groupIds) {
-    const groups = GROUPS.filter(g => groupIds.includes(g.id));
-    const ids = new Set(), queue = [];
-    for (const g of groups) for (const id of g.ids) { ids.add(g.id + ':' + id); if (!queue.includes(id)) queue.push(id); }
-    session = { kind: 'group', queue: shuffle(queue), i: 0, total: queue.length, misses: [], groupIds, ids,
-      title: groups.length === 1 ? `Verwechslungsgefahr · ${groups[0].title}` : 'Verwechslungsgefahr · alle Gruppen' };
-    ask(byId.get(session.queue[0]));
-  }
-  function renderGroups() {
-    const done = getState().groups || {};
-    const all = new Set(GROUPS.flatMap(g => g.ids));
-    $('#go-groups-all').textContent = `Alle ${all.size} gemischt`;
-    $('#group-list').innerHTML = GROUPS.map(g => {
-      const r = done[g.id];
-      const meta = !r ? `${g.ids.length} Wörter` : r.wrong ? `${r.wrong} Fehler beim letzten Mal` : 'Zuletzt fehlerfrei';
-      const rows = g.ids.map(id => { const w = byId.get(id); return `<div class="grow"><span class="gde">${esc(w.de)}</span><span class="gen" lang="fr">${esc(shownFr(w.fr))}</span></div>`; }).join('');
-      return `<details class="grp"><summary><span class="grp-text"><span class="grp-title">${esc(g.title)}</span><span class="grp-meta${r ? (r.wrong ? ' bad' : ' good') : ''}">${meta}</span></span><button class="step-go grp-go" data-group="${g.id}">Üben</button></summary>${g.tip ? `<p class="grp-tip">${esc(g.tip)}</p>` : ''}${rows}</details>`;
-    }).join('');
-    for (const b of document.querySelectorAll('.grp-go')) b.onclick = e => { e.preventDefault(); startGroup([b.dataset.group]); };
-  }
-
   // ---------- overview ----------
   const dateFmt = new Intl.DateTimeFormat('de-CH', { day: 'numeric', month: 'numeric' });
   function open() {
@@ -280,7 +238,6 @@ function initWords({ $, getState, save, show }) {
     const tests = st.tests || [];
     $('#tests').textContent = tests.length ? 'Bisher: ' + tests.slice(-4).map(t => `${t.s}/${t.of} (${dateFmt.format(t.t)})`).join(' · ') : '';
     renderList();
-    renderGroups();
     session = null; word = null;
     show('words');
   }
@@ -320,7 +277,6 @@ function initWords({ $, getState, save, show }) {
   $('#skip-first').onclick = skipFirst;
   $('#go-practice').onclick = startPractice;
   $('#go-test').onclick = startTest;
-  $('#go-groups-all').onclick = () => startGroup(GROUPS.map(g => g.id));
   $('#ask-back').onclick = open;
   for (const b of document.querySelectorAll('[data-to-words]')) b.onclick = open;
   $('#ask-go').onclick = () => (checked ? next() : checkWord());

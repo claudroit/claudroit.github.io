@@ -1,14 +1,11 @@
 // Answer rules against every word: node französisch/tests.cjs
 const fs = require('fs'), path = require('path');
 const WORDS = require('./words-data.js');
-global.WORDS = WORDS;
-const { GROUPS } = require('./groups-data.js');
 const { checkFr, shownFr, mascFr } = new Function(fs.readFileSync(path.join(__dirname, 'check.js'), 'utf8') + ';return { checkFr, shownFr, mascFr };')();
 let bad = 0;
 const fail = (...a) => { bad++; console.log('FAIL', ...a); };
 const ids = new Set(WORDS.map(w => w.id));
 if (ids.size !== WORDS.length) fail('duplicate ids');
-for (const g of GROUPS) if (g.missing.length) fail('group', g.id, 'has unknown words', g.missing);
 // every word typed exactly as printed is right
 for (const w of WORDS) if (checkFr(w, shownFr(w.fr), [], WORDS).result !== 'right') fail('own', w.fr);
 const t = (fr, typed, want) => {
@@ -67,5 +64,5 @@ const m = (fr, want) => { const got = mascFr(fr); if (got !== want) fail('masc',
 m('rendre qn heureux, heureuse', 'rendre qn heureux');
 m('un, une camarade de classe', 'un camarade de classe');
 m('Il est con! Elle est conne!', 'Il est con!');
-console.log(WORDS.length, 'words,', GROUPS.length, 'groups,', bad ? bad + ' failures' : 'all checks pass');
+console.log(WORDS.length, 'words,', bad ? bad + ' failures' : 'all checks pass');
 process.exit(bad ? 1 : 0);

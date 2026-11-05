@@ -2,12 +2,12 @@
 // Each chapter choice (all, 3.2 … 3.6) keeps its own progress.
 function initWords({ $, getState, save, show }) {
   const SCOPES = {
-    all: { note: 'Alle Wörter aus TSW Kapitel 3.2 bis 3.6 (Buch S. 42–57).', list: 'Alle Wörter' },
-    '3.2': { note: '3.2 Partnerschaft, Ehe, Trennung.', list: 'Alle Wörter aus 3.2' },
-    '3.3': { note: '3.3 Kennenlernen, Freundschaft und Liebe.', list: 'Alle Wörter aus 3.3' },
-    '3.4': { note: '3.4 Umgang mit Menschen.', list: 'Alle Wörter aus 3.4' },
-    '3.5': { note: '3.5 Streit, Konflikte, Versöhnung und Gewalt.', list: 'Alle Wörter aus 3.5' },
-    '3.6': { note: '3.6 Menschen, Gruppen und Zugehörigkeit.', list: 'Alle Wörter aus 3.6' },
+    all: { note: 'TSW Kapitel 3.2 bis 3.6', list: 'Alle Wörter' },
+    '3.2': { note: '', list: 'Alle Wörter aus 3.2' },
+    '3.3': { note: '', list: 'Alle Wörter aus 3.3' },
+    '3.4': { note: '', list: 'Alle Wörter aus 3.4' },
+    '3.5': { note: '', list: 'Alle Wörter aus 3.5' },
+    '3.6': { note: '', list: 'Alle Wörter aus 3.6' },
   };
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -220,12 +220,12 @@ function initWords({ $, getState, save, show }) {
     for (const b of document.querySelectorAll('#scope button')) b.setAttribute('aria-pressed', b.dataset.scope === scope());
     $('#scope-note').textContent = `${SCOPES[scope()].note} ${count} Wörter.`;
     $('#list-label').textContent = SCOPES[scope()].list;
-    $('#step-first').textContent = `Alle ${count} Wörter einmal, in Buchreihenfolge. Richtig kommt zu „Kann ich“, der Rest zu „Üben“.`;
-    $('#step-practice').textContent = 'Nur die Wörter unter „Üben“. Ein Wort sitzt, wenn du es zweimal richtig geschrieben hast.';
+    $('#step-first').textContent = `Alle ${count} Wörter einmal, in Buchreihenfolge. Richtig kommt zu „Kann ich“, der Rest zu „Üben“`;
+    $('#step-practice').textContent = 'Nur die Wörter unter „Üben“. Ein Wort sitzt, wenn du es zweimal richtig geschrieben hast';
     const nTest = testIds().length;
     $('#step-test').textContent = nTest < count
-      ? `Nur die ${nTest} Wörter, die im ersten Durchgang falsch waren, gemischt. Fehler kommen zurück zu „Üben“.`
-      : `Alle ${count} Wörter gemischt, wie im Test. Fehler kommen zurück zu „Üben“.`;
+      ? `Nur die ${nTest} Wörter, die im ersten Durchgang falsch waren, gemischt. Fehler kommen zurück zu „Üben“`
+      : `Alle ${count} Wörter gemischt, wie im Test. Fehler kommen zurück zu „Üben“`;
     $('#summary').innerHTML = `<span><b${c.kann ? ' class="good"' : ''}>${c.kann}</b>kann ich</span><span><b${c.lernen ? ' class="bad"' : ''}>${c.lernen}</b>üben</span><span><b>${c.offen}</b>noch offen</span>`;
     $('#go-first').textContent = st.first.done ? 'Nochmal von vorn' : st.first.i ? `Weiter (${st.first.i}/${count})` : 'Starten';
     $('#go-first').classList.toggle('primary', !st.first.done);

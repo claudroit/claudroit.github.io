@@ -1,13 +1,12 @@
 // French word trainer (TSW Kapitel 3), built like /verben: first pass → practice → final test, saved in this browser.
-// Each chapter choice (all, 3.2 … 3.6) keeps its own progress.
+// Each chapter choice (all, 3.2 … 3.5) keeps its own progress.
 function initWords({ $, getState, save, show }) {
   const SCOPES = {
-    all: { note: 'TSW Kapitel 3.2 bis 3.6', list: 'Alle Wörter' },
+    all: { note: 'TSW Kapitel 3.2 bis 3.5', list: 'Alle Wörter' },
     '3.2': { note: '', list: 'Alle Wörter aus 3.2' },
     '3.3': { note: '', list: 'Alle Wörter aus 3.3' },
     '3.4': { note: '', list: 'Alle Wörter aus 3.4' },
     '3.5': { note: '', list: 'Alle Wörter aus 3.5' },
-    '3.6': { note: '', list: 'Alle Wörter aus 3.6' },
   };
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -31,6 +30,9 @@ function initWords({ $, getState, save, show }) {
       if (sc.run && sc.run.order.some(id => !sc.miss.includes(id))) sc.run = null;
     }
     sc.miss ||= [];
+    // drop words that were removed from the list (chapter 3.6)
+    sc.miss = sc.miss.filter(id => byId.has(id));
+    if (sc.run && sc.run.order.some(id => !byId.has(id))) sc.run = null;
     return sc;
   }
   // what the final test asks: the first-pass mistakes, or everything if there were none

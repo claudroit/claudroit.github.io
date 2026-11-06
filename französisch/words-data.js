@@ -1,4 +1,4 @@
-// Französisch, TSW Kapitel 3 (Der Mensch und menschliche Beziehungen), 3.2–3.6: the blue words, in book order (p. 42–57).
+// Französisch, TSW Kapitel 3 (Der Mensch und menschliche Beziehungen), 3.2–3.5: the blue words, in book order.
 // One line per word: French | German [| other forms the book also gives, separated by " ¦ "].
 // "# 3.x Title" starts a chapter, "## Title" a section inside it.
 // Ids are line positions (f1, f2, …), and saved progress uses them: add new words only at the very end.
@@ -248,70 +248,6 @@ une bagarre | Schlägerei, Rauferei
 frapper qn | jdn schlagen
 casser la figure à qn | jdn zusammenschlagen
 enfermer qn | jdn einsperren, einschliessen
-# 3.6 Menschen, Gruppen und Zugehörigkeit
-l'homme (m) | Mensch
-les gens (mpl) | die Leute
-les jeunes gens (mpl) | Jugendliche, junge Leute
-une personne | Person
-une personne en situation de handicap | Mensch mit Behinderung/Beeinträchtigung
-un être humain | Mensch
-une génération | Generation
-mineur, mineure | minderjährig
-majeur, majeure | volljährig
-une dame | Dame, Frau
-un monsieur; des messieurs (pl) | Herr, Mann
-une demoiselle | Fräulein, junges Mädchen (veraltet)
-une femme | Frau
-un homme | Mann
-féminin, féminine | weiblich
-masculin, masculine | männlich
-le genre | Geschlecht
-non-binaire | nicht binär, divers
-l'identité sexuelle (f) | sexuelle Identität
-un, une enfant | Kind
-un garçon | Junge
-une fille | Mädchen
-une jeune fille | junges Mädchen
-un, une jeune | Jugendliche(r)
-une personne âgée | ein älterer Mensch; Senior(in)
-les personnes âgées (fpl) | Senioren, ältere Leute/Menschen
-une famille | Familie
-un voisin, une voisine | Nachbar(in)
-un, une camarade de classe | Klassenkamerad(in)
-un, une collègue | Kollege, Kollegin
-un parent, une parente | Verwandte(r)
-un groupe | Gruppe
-un club | Club
-une équipe | Mannschaft, Team
-une bande | Gruppe, Bande, Clique
-une communauté | Gemeinschaft
-beaucoup de monde | viele Leute
-une foule | Menschenmenge
-se rassembler | sich versammeln
-tout le monde | alle, allen
-tous (mpl), toutes (fpl) | alle
-chaque | jede(r, s) (mit Nomen)
-chacun, chacune | jede(r, s) (ohne Nomen)
-personne … ne | niemand (Subjekt)
-ne … personne | niemand (Objekt)
-on | man
-quelqu'un | jemand
-plusieurs | mehrere
-certains, certaines | einige
-quelques-uns, quelques-unes | einige
-autre | andere(r, s)
-l'autre (mf); les autres (pl) | der/die/das andere, die anderen
-quelqu'un d'autre | jemand anderes/anderen/anderem
-participer à qc | an etw. teilnehmen
-un participant, une participante | Teilnehmer(in)
-faire partie de | gehören zu
-être membre de qc | Mitglied von etw. sein
-appartenir à qc | etw. angehören, zu etw. gehören
-ensemble | zusammen, gemeinsam
-avec | mit
-sans | ohne
-seul, seule | allein, einsam
-parmi | unter, zwischen
 `;
 
 const CHAPTERS = {};

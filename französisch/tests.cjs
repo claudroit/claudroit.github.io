@@ -41,13 +41,10 @@ t('homosexuel, homosexuelle', 'gai, gaie', 'right');           // same German
 t('taper qn', 'frapper qn', 'right');                          // same German: jdn schlagen
 t('s\'occuper de qn/qc', "s'occuper de", 'right');
 t('s\'occuper de qn/qc', "s'occuper de qn", 'right');
-t('personne … ne', 'personne ne', 'right');
-t('personne … ne', 'ne personne', 'wrong');
 t('Ça suffit!', 'ca suffit', 'accent');
 t('Ça suffit!', 'ça suffit !', 'right');
 t('Fiche-moi la paix!', 'fiche moi la paix', 'dash');
 t('Quel idiot! Quelle idiote!', 'Quel idiot!', 'fem');
-t('un monsieur; des messieurs (pl)', 'un monsieur', 'right');
 t('amical, amicale; amicaux (mpl)', 'amical, amicale', 'right');
 t('interdire qc à qn/à qn de faire qc', 'interdire qc à qn', 'right');
 t('interdire qc à qn/à qn de faire qc', 'interdire à qn de faire qc', 'right');
@@ -55,14 +52,9 @@ t('traiter qn (comme …)', 'traiter qn', 'right');
 t('traiter qn (comme …)', 'traiter qn comme', 'right');
 t('en avoir assez (de qc)', 'en avoir assez', 'right');
 t('le harcèlement', 'le mobbing', 'right');                    // same German: Mobbing
-t("l'homme (m)", 'un être humain', 'right');                   // same German: Mensch
-t('chaque', 'chacun', 'wrong');
 const other = (fr, typed, want) => { const w = WORDS.find(x => x.fr === fr); const r = checkFr(w, typed, [], WORDS); if (r.other?.fr !== want) fail('other', fr, typed, r.other?.fr); };
-other('chaque', 'chacun, chacune', 'chacun, chacune');
-other('le genre', 'le sexe', 'le sexe');
 const m = (fr, want) => { const got = mascFr(fr); if (got !== want) fail('masc', fr, got); };
 m('rendre qn heureux, heureuse', 'rendre qn heureux');
-m('un, une camarade de classe', 'un camarade de classe');
 m('Il est con! Elle est conne!', 'Il est con!');
 console.log(WORDS.length, 'words,', bad ? bad + ' failures' : 'all checks pass');
 process.exit(bad ? 1 : 0);

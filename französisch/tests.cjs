@@ -52,6 +52,17 @@ t('traiter qn (comme …)', 'traiter qn', 'right');
 t('traiter qn (comme …)', 'traiter qn comme', 'right');
 t('en avoir assez (de qc)', 'en avoir assez', 'right');
 t('le harcèlement', 'le mobbing', 'right');                    // same German: Mobbing
+t('une rencontre', 'la rencontre', 'right');
+t('le divorce', 'un divorce', 'right');
+t('une rencontre', 'le rencontre', 'wrong');
+t("l'amitié (f)", 'une amitié', 'right');
+t("l'amitié (f)", "l'amitié (f)", 'right');
+t("l'amitié (f)", 'un amitié', 'wrong');
+t("l'union libre (f)", 'une union libre', 'right');
+t('un ami, une amie', "l'ami, l'amie", 'right');
+t('un, une célibataire', 'le, la célibataire', 'right');
+t("l'époux (m), l'épouse (f)", 'un époux, une épouse', 'right');
+t('la jalousie', 'une jalousie', 'right');
 const other = (fr, typed, want) => { const w = WORDS.find(x => x.fr === fr); const r = checkFr(w, typed, [], WORDS); if (r.other?.fr !== want) fail('other', fr, typed, r.other?.fr); };
 const m = (fr, want) => { const got = mascFr(fr); if (got !== want) fail('masc', fr, got); };
 m('rendre qn heureux, heureuse', 'rendre qn heureux');

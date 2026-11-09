@@ -47,9 +47,26 @@ function mascFr(fr) {
 }
 
 // the ways of writing one book entry that count as right
+// the same word with the other article of the same gender: une rencontre ↔ la rencontre, le divorce ↔ un divorce,
+// les gens ↔ des gens. l' hides the gender, so "une amitié" counts only where the book adds (f) or (m).
+const SWAP = { un: 'le', une: 'la', le: 'un', la: 'une', les: 'des', des: 'les' };
+function otherArticleFr(fr) {
+  const segs = fr.split(';')[0].split(', ').map(seg => {
+    const lab = seg.match(/^l'(.+?) \((m|f)\)(.*)$/);
+    if (lab) return (lab[2] === 'm' ? 'un ' : 'une ') + lab[1] + lab[3];
+    const m = seg.match(/^(un|une|le|la|les|des)\b ?(.*)$/i);
+    if (!m) return seg;
+    const art = SWAP[m[1].toLowerCase()], rest = m[2];
+    if ((art === 'le' || art === 'la') && /^[aeiouyéèêâàîïôûh]/i.test(rest)) return "l'" + rest;
+    return rest ? art + ' ' + rest : art;
+  });
+  const out = segs.join(', ');
+  return out === fr.split(';')[0] ? null : out;
+}
+
 function candidatesFr(w) {
   const out = new Set();
-  const forms = [shownFr(w.fr), shownFr(w.fr).split(';')[0], ...(w.also || [])];
+  const forms = [shownFr(w.fr), shownFr(w.fr).split(';')[0], w.fr.split(';')[0], otherArticleFr(w.fr), ...(w.also || [])].filter(Boolean);
   for (const form of forms) {
     // brackets are optional pieces: with or without them
     const opts = [...form.matchAll(/\(([^)]*)\)/g)].map(m => m[0]);

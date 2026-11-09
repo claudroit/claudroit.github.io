@@ -98,7 +98,34 @@ const ARTICLE = /^(le |la |les |un |une |des |l')/;
  * note: the card's word; others: words with the same German (their answers count too);
  * all: every word, to say which card a wrong-but-real word belongs to.
  */
+// the short way of writing both forms: "un(e) ami(e)", "être marié(e)", "jaloux(se)", "agressif(ve)", "con(ne)".
+// Returns the long forms it could stand for: both words after each other ("un une célibataire")
+// or the whole masculine phrase, then the whole feminine one ("un ami une amie").
+const SHORT_FEM = /([\p{L}'-]+)\((e|ne|le|te|se|ve|euse|rice|ère)\)/gu;
+function feminine(word, suffix) {
+  if (suffix === 'se' && /x$/.test(word)) return word.slice(0, -1) + 'se';      // jaloux → jalouse
+  if (suffix === 've' && /f$/.test(word)) return word.slice(0, -1) + 've';      // agressif → agressive
+  if (suffix === 'euse' && /eur$/.test(word)) return word.slice(0, -3) + 'euse';  // agresseur → agresseuse
+  if (suffix === 'rice' && /teur$/.test(word)) return word.slice(0, -3) + 'rice';
+  if (suffix === 'ère' && /er$/.test(word)) return word.slice(0, -2) + 'ère';
+  return word + suffix;
+}
+function expandShortFr(typed) {
+  if (!/\p{L}\((e|ne|le|te|se|ve|euse|rice|ère)\)/u.test(typed)) return [];
+  const masc = typed.replace(SHORT_FEM, '$1');
+  const fem = typed.replace(SHORT_FEM, (_, w, suf) => feminine(w, suf));
+  const side = typed.replace(SHORT_FEM, (_, w, suf) => w + ' ' + feminine(w, suf));
+  return [side, masc + ' ' + fem];
+}
+
 function checkFr(note, typedRaw, others = [], all = []) {
+  // the short form: take its best reading (right, else a near miss like a wrong accent)
+  const tries = expandShortFr(typedRaw).map(long => checkFrLong(note, long, others, all));
+  const best = tries.find(r => r.result === 'right') || tries.find(r => r.result !== 'wrong');
+  return best || checkFrLong(note, typedRaw, others, all);
+}
+
+function checkFrLong(note, typedRaw, others = [], all = []) {
   const typed = normalizeFr(typedRaw);
   const cands = [...new Set([note, ...others].flatMap(candidatesFr))];
   if (!typed) return { result: 'empty', closest: cands[0] };

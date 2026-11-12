@@ -78,5 +78,14 @@ const other = (fr, typed, want) => { const w = WORDS.find(x => x.fr === fr); con
 const m = (fr, want) => { const got = mascFr(fr); if (got !== want) fail('masc', fr, got); };
 m('rendre qn heureux, heureuse', 'rendre qn heureux');
 m('Il est con! Elle est conne!', 'Il est con!');
+// synonyms and opposites: every partner typed as printed is right, the asked word itself is not
+const PAIRS = require('./pairs-data.js');
+for (const p of [...PAIRS.syn, ...PAIRS.ant]) {
+  const [main, ...others] = p.answers;
+  for (const a of p.answers) if (checkFr(main, shownFr(a.fr), others, WORDS).result !== 'right') fail('pair', p.id, a.fr);
+  if (checkFr(main, shownFr(p.prompt.fr), others, WORDS).result === 'right') fail('pair self', p.id);
+}
+if (new Set([...PAIRS.syn, ...PAIRS.ant].map(p => p.id)).size !== PAIRS.syn.length + PAIRS.ant.length) fail('duplicate pair ids');
+console.log(PAIRS.syn.length, 'synonym cards,', PAIRS.ant.length, 'opposite cards');
 console.log(WORDS.length, 'words,', bad ? bad + ' failures' : 'all checks pass');
 process.exit(bad ? 1 : 0);

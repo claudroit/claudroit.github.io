@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Französisch · Kapitel 3</title>
-<link rel="stylesheet" href="style.css?v=4">
-<script defer src="words-data.js?v=4"></script>
-<script defer src="check.js?v=4"></script>
-<script defer src="trainer.js?v=4"></script>
-<script defer src="app.js?v=4"></script>
+<link rel="stylesheet" href="style.css?v=5">
+<script defer src="words-data.js?v=5"></script>
+<script defer src="pairs-data.js?v=5"></script>
+<script defer src="check.js?v=5"></script>
+<script defer src="trainer.js?v=5"></script>
+<script defer src="app.js?v=5"></script>
 </head>
 <body>
 <section id="words" class="screen" hidden>
@@ -17,7 +18,12 @@
     <span>Französisch</span>
     <span></span>
   </header>
-  <div class="top"><h1>Kapitel 3 Vokabeln</h1><span class="sub">Deutsch → Französisch</span></div>
+  <div class="top"><h1>Kapitel 3 Vokabeln</h1><span id="mode-sub" class="sub">Deutsch → Französisch</span></div>
+  <div id="mode" class="segmented verb-track" role="group" aria-label="Übung">
+    <button data-mode="words">Vokabeln</button>
+    <button data-mode="syn">Synonyme</button>
+    <button data-mode="ant">Gegenteile</button>
+  </div>
   <div id="scope" class="segmented verb-track" role="group" aria-label="Kapitel">
     <button data-scope="all">Alle</button>
     <button data-scope="3.2">3.2</button>
@@ -61,6 +67,7 @@
   <main class="card conj-card">
     <div id="ask-meta" class="meta"></div>
     <div id="ask-de" class="side" lang="de"></div>
+    <p id="ask-hint" class="quiet small ask-hint" lang="de" hidden></p>
     <form id="ask-form" class="en-form" autocomplete="off">
       <label for="ask-input" class="visually-hidden">Auf Französisch</label>
       <input id="ask-input" class="conj-input en-input" lang="fr" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Auf Französisch …">

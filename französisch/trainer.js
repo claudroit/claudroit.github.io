@@ -1,5 +1,5 @@
 // French word trainer (TSW Kapitel 3), built like /verben: first pass → practice → final test, saved in this browser.
-// Each chapter choice (all, 3.2 … 3.5) keeps its own progress.
+// Each chapter choice (all, 3.2 … 3.5) and the synonym and opposite exercises keep their own progress.
 function initWords({ $, getState, save, show }) {
   const SCOPES = {
     all: { note: 'TSW Kapitel 3.2 bis 3.5', list: 'Alle Wörter' },
@@ -7,15 +7,22 @@ function initWords({ $, getState, save, show }) {
     '3.3': { note: '', list: 'Alle Wörter aus 3.3' },
     '3.4': { note: '', list: 'Alle Wörter aus 3.4' },
     '3.5': { note: '', list: 'Alle Wörter aus 3.5' },
+    syn: { note: 'Zum französischen Wort ein Synonym (gleiche Bedeutung) aus Kapitel 3.2 bis 3.5 schreiben.', list: 'Alle Synonyme', items: PAIRS.syn, sub: 'Wort → Synonym', ask: 'Synonym', placeholder: 'Synonym …' },
+    ant: { note: 'Zum französischen Wort das Gegenteil aus Kapitel 3.2 bis 3.5 schreiben.', list: 'Alle Gegenteile', items: PAIRS.ant, sub: 'Wort → Gegenteil', ask: 'Gegenteil', placeholder: 'Gegenteil …' },
   };
+  const CHAPTERS = ['all', '3.2', '3.3', '3.4', '3.5'];
+  const modeOf = sc => (SCOPES[sc].items ? sc : 'words');
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const byId = new Map(WORDS.map(w => [w.id, w]));
+  const byId = new Map([...WORDS, ...PAIRS.syn, ...PAIRS.ant].map(w => [w.id, w]));
+  // what the card asks for and what counts: a word's own entry, or (synonyms, opposites) its partners
+  const answersOf = w => w.answers || [w, ...(sameDe.get(w.de) || []).filter(x => x !== w)];
+  const shownAnswer = w => w.answers ? w.answers.map(a => shownFr(a.fr)).join(' / ') : shownFr(w.fr);
   const sameDe = new Map();
   for (const w of WORDS) sameDe.set(w.de, [...(sameDe.get(w.de) || []), w]);
 
   const scope = () => SCOPES[getState().scope] ? getState().scope : 'all';
-  const selected = () => scope() === 'all' ? WORDS : WORDS.filter(w => w.group === scope());
+  const selected = () => SCOPES[scope()].items || (scope() === 'all' ? WORDS : WORDS.filter(w => w.group === scope()));
 
   // ---------- state ----------
   function S() {
@@ -60,8 +67,11 @@ function initWords({ $, getState, save, show }) {
     $('#ask-progress').textContent = loose ? `noch ${session.queue.length - session.i}` : `${session.i + 1}/${session.total}`;
     const done = loose ? session.i / Math.max(1, session.queue.length) : session.i / Math.max(1, session.total);
     $('#ask-bar').style.width = `${Math.round(done * 1000) / 10}%`;
-    $('#ask-meta').textContent = `${w.group} · ${w.section}`;
-    $('#ask-de').textContent = w.de;
+    $('#ask-meta').textContent = w.prompt ? `${SCOPES[scope()].ask} zu …` : `${w.group} · ${w.section}`;
+    $('#ask-de').textContent = w.prompt ? shownFr(w.prompt.fr) : w.de;
+    $('#ask-de').lang = w.prompt ? 'fr' : 'de';
+    $('#ask-hint').hidden = !w.prompt;
+    $('#ask-hint').textContent = w.prompt ? w.prompt.de : '';
     const input = $('#ask-input');
     input.value = ''; input.readOnly = false; input.dataset.result = '';
     $('#ask-verdict').textContent = ''; $('#ask-verdict').dataset.result = '';
@@ -80,24 +90,28 @@ function initWords({ $, getState, save, show }) {
     const input = $('#ask-input');
     // answers you counted as right before ("Ich hatte es richtig") are right from then on
     const mine = (getState().accepted?.[word.id] || []).includes(normalizeFr(input.value));
-    const r = mine ? { result: 'right' } : checkFr(word, input.value, (sameDe.get(word.de) || []).filter(x => x !== word), WORDS);
+    const [main, ...others] = answersOf(word);
+    let r = mine ? { result: 'right' } : checkFr(main, input.value, others, WORDS);
+    // the asked word itself is not an answer
+    if (word.prompt && r.result === 'wrong' && candidatesFr(word.prompt).some(c => foldFr(c) === foldFr(normalizeFr(input.value)))) r = { ...r, other: null, self: true };
     const perfect = r.result === 'right';
     input.readOnly = true; input.blur();
     $('#accents').hidden = true;
     input.dataset.result = perfect ? 'right' : 'wrong';
     $('#ask-verdict').dataset.result = perfect ? 'right' : 'wrong';
     $('#ask-verdict').textContent = VERDICT[r.result];
-    $('#ask-answer').textContent = shownFr(word.fr);
+    $('#ask-answer').textContent = shownAnswer(word);
     $('#ask-result').hidden = false;
     // close misses: show letter by letter what was wrong (red) and what was missing (underlined)
     const diff = !perfect && input.value.trim() && r.closest && (r.result !== 'wrong' || r.close) ? letterDiffFr(normalizeFr(input.value), r.closest) : null;
     $('#ask-diff').hidden = !diff;
     if (diff) { $('#diff-typed').innerHTML = marked(diff.typed); $('#diff-book').innerHTML = marked(diff.answer); }
-    $('#ask-override').hidden = perfect || !input.value.trim();
+    $('#ask-override').hidden = perfect || !input.value.trim() || !!r.self;
     snapshot = perfect ? null : { scope: JSON.stringify(S()), queue: [...session.queue], misses: [...(session.misses || [])], typed: normalizeFr(input.value) };
     // the test wants this card's word: say so when the typed word is another one from the book
-    $('#ask-other').hidden = !r.other;
-    if (r.other) $('#ask-other').innerHTML = `„${esc(shownFr(r.other.fr))}“ ist im Buch: ${esc(r.other.de)}`;
+    $('#ask-other').hidden = !r.other && !r.self;
+    if (r.self) $('#ask-other').textContent = 'Das ist das Wort selbst. Gesucht ist ein anderes Wort.';
+    else if (r.other) $('#ask-other').innerHTML = `„${esc(shownFr(r.other.fr))}“ ist im Buch: ${esc(r.other.de)}`;
     $('#ask-go').textContent = 'Weiter';
     record(perfect);
   }
@@ -178,7 +192,7 @@ function initWords({ $, getState, save, show }) {
       $('#done-text').textContent = run.wrong.length
         ? `Diese ${run.wrong.length === 1 ? 'kommt' : `${run.wrong.length} kommen`} zurück zu „Üben“:`
         : 'Alle Wörter fehlerfrei.';
-      list.innerHTML = run.wrong.map(id => `<span class="chip">${esc(shownFr(byId.get(id).fr))}</span>`).join('');
+      list.innerHTML = run.wrong.map(id => `<span class="chip">${esc(chipText(byId.get(id)))}</span>`).join('');
       st.run = null;
       save();
       nextBtn.textContent = run.wrong.length ? `${run.wrong.length} Wörter üben` : 'Zu den Wörtern';
@@ -186,6 +200,8 @@ function initWords({ $, getState, save, show }) {
     }
     show('done');
   }
+
+  const chipText = w => w.prompt ? `${shownFr(w.prompt.fr)} → ${shownAnswer(w)}` : shownFr(w.fr);
 
   function startFirst() {
     const st = S();
@@ -219,7 +235,12 @@ function initWords({ $, getState, save, show }) {
   const dateFmt = new Intl.DateTimeFormat('de-CH', { day: 'numeric', month: 'numeric' });
   function open() {
     const st = S(), c = counts(), count = selected().length;
+    const mode = modeOf(scope());
     for (const b of document.querySelectorAll('#scope button')) b.setAttribute('aria-pressed', b.dataset.scope === scope());
+    for (const b of document.querySelectorAll('#mode button')) b.setAttribute('aria-pressed', b.dataset.mode === mode);
+    $('#scope').hidden = mode !== 'words';
+    $('#mode-sub').textContent = SCOPES[scope()].sub || 'Deutsch → Französisch';
+    $('#ask-input').placeholder = SCOPES[scope()].placeholder || 'Auf Französisch …';
     $('#scope-note').textContent = `${SCOPES[scope()].note} ${count} Wörter.`;
     $('#list-label').textContent = SCOPES[scope()].list;
     $('#step-first').textContent = `Alle ${count} Wörter einmal, in Buchreihenfolge. Richtig kommt zu „Kann ich“, der Rest zu „Üben“`;
@@ -248,12 +269,19 @@ function initWords({ $, getState, save, show }) {
   const fold = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   function renderList() {
     const st = S(), q = fold($('#list-search').value.trim());
-    const shown = selected().filter(w => !q || fold(w.fr).includes(q) || fold(w.de).includes(q));
+    const text = w => w.prompt ? [w.prompt.fr, w.de, ...w.answers.map(a => a.fr)].join(' ') : w.fr + ' ' + w.de;
+    const shown = selected().filter(w => !q || fold(text(w)).includes(q));
     let section = '', html = '';
     for (const w of shown) {
+      const e = st.s[w.id], cls = e?.k ? 'kann' : e ? 'lernen' : 'offen';
+      if (w.prompt) {
+        const head = `${w.group} · ${w.section}`;
+        if (head !== section) { section = head; html += `<h3 class="wsec">${esc(head)}</h3>`; }
+        html += `<div class="vrow wrow ${cls}"><span class="vn">${w.n}</span><span class="vinf" lang="fr">${esc(shownFr(w.prompt.fr))}</span><span class="vde" lang="fr">${esc(shownAnswer(w))}</span></div>`;
+        continue;
+      }
       const head = `${w.group + ' · '}${w.section}`;
       if (head !== section) { section = head; html += `<h3 class="wsec">${esc(head)}</h3>`; }
-      const e = st.s[w.id], cls = e?.k ? 'kann' : e ? 'lernen' : 'offen';
       html += `<div class="vrow wrow ${cls}"><span class="vn">${w.n}</span><span class="vinf" lang="fr">${esc(w.fr)}</span><span class="vde">${esc(w.de)}</span></div>`;
     }
     $('#word-list').innerHTML = html || '<p class="quiet small">Kein Wort gefunden.</p>';
@@ -274,7 +302,13 @@ function initWords({ $, getState, save, show }) {
   }
   $('#list-search').oninput = renderList;
   $('#ask-override').onclick = override;
-  for (const b of document.querySelectorAll('#scope button')) b.onclick = () => { getState().scope = b.dataset.scope; save(); open(); };
+  for (const b of document.querySelectorAll('#scope button')) b.onclick = () => { getState().scope = getState().chapter = b.dataset.scope; save(); open(); };
+  // Vokabeln goes back to the chapter chosen last
+  for (const b of document.querySelectorAll('#mode button')) b.onclick = () => {
+    const st = getState();
+    st.scope = b.dataset.mode === 'words' ? (CHAPTERS.includes(st.chapter) ? st.chapter : 'all') : b.dataset.mode;
+    save(); open();
+  };
   $('#go-first').onclick = startFirst;
   $('#skip-first').onclick = skipFirst;
   $('#go-practice').onclick = startPractice;

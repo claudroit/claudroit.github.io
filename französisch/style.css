@@ -181,3 +181,5 @@ h2 { font-size: 22px; font-weight: 650; margin: 0 0 4px; }
 
 #done-list .chip b { font-weight: 600; }
 #accents { margin-top: 10px; }
+.ask-hint { margin: 6px 0 0; }
+#mode { margin-bottom: 10px; }

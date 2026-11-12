@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Französisch · Kapitel 3</title>
-<link rel="stylesheet" href="style.css?v=6">
-<script defer src="words-data.js?v=6"></script>
-<script defer src="pairs-data.js?v=6"></script>
-<script defer src="check.js?v=6"></script>
-<script defer src="cards.js?v=6"></script>
-<script defer src="trainer.js?v=6"></script>
-<script defer src="app.js?v=6"></script>
+<link rel="stylesheet" href="style.css?v=7">
+<script defer src="words-data.js?v=7"></script>
+<script defer src="pairs-data.js?v=7"></script>
+<script defer src="prep-data.js?v=7"></script>
+<script defer src="check.js?v=7"></script>
+<script defer src="cards.js?v=7"></script>
+<script defer src="trainer.js?v=7"></script>
+<script defer src="app.js?v=7"></script>
 </head>
 <body>
 <section id="words" class="screen" hidden>
@@ -24,7 +25,8 @@
     <button data-mode="words">Vokabeln</button>
     <button data-mode="syn">Synonyme</button>
     <button data-mode="ant">Gegenteile</button>
-    <button data-mode="cards">Karteikarten</button>
+    <button data-mode="prep">à / de</button>
+    <button data-mode="cards">Karten</button>
   </div>
   <div id="scope" class="segmented verb-track" role="group" aria-label="Kapitel">
     <button data-scope="all">Alle</button>
@@ -81,6 +83,7 @@
       <label for="ask-input" class="visually-hidden">Auf Französisch</label>
       <input id="ask-input" class="conj-input en-input" lang="fr" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="Auf Französisch …">
     </form>
+    <div id="ask-choices" class="choices" role="group" aria-label="Präposition" hidden><button type="button" data-v="à" lang="fr">à</button><button type="button" data-v="de" lang="fr">de</button><button type="button" data-v="–" aria-label="keine Präposition">–</button></div>
     <div id="accents" class="accents" aria-label="Sonderzeichen"><button type="button">é</button><button type="button">è</button><button type="button">ê</button><button type="button">à</button><button type="button">â</button><button type="button">ç</button><button type="button">î</button><button type="button">ï</button><button type="button">ô</button><button type="button">ù</button><button type="button">û</button><button type="button">ë</button><button type="button">œ</button></div>
     <p id="ask-verdict" class="verdict conj-verdict" aria-live="polite"></p>
     <div id="ask-result" class="en-result" hidden>

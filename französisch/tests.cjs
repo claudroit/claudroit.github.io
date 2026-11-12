@@ -87,5 +87,14 @@ for (const p of [...PAIRS.syn, ...PAIRS.ant]) {
 }
 if (new Set([...PAIRS.syn, ...PAIRS.ant].map(p => p.id)).size !== PAIRS.syn.length + PAIRS.ant.length) fail('duplicate pair ids');
 console.log(PAIRS.syn.length, 'synonym cards,', PAIRS.ant.length, 'opposite cards');
+// à / de: every gap filled with its answer gives back the full expression
+const PREPS = require('./prep-data.js');
+for (const p of PREPS) {
+  const fill = p.answer === '–' ? '' : p.prep === "d'" ? "d'" : p.answer + ' ';
+  const back = p.gapped.replace(/___ ?/, fill).trim();
+  if (back !== p.full) fail('prep', p.id, back, '≠', p.full);
+}
+if (new Set(PREPS.map(p => p.id)).size !== PREPS.length) fail('duplicate prep ids');
+console.log(PREPS.length, 'preposition cards');
 console.log(WORDS.length, 'words,', bad ? bad + ' failures' : 'all checks pass');
 process.exit(bad ? 1 : 0);

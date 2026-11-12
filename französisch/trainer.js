@@ -1,5 +1,6 @@
 // French word trainer (TSW Kapitel 3), built like /verben: first pass → practice → final test, saved in this browser.
-// Each chapter choice (all, 3.2 … 3.5) and the synonym and opposite exercises keep their own progress.
+// Each chapter choice (all, 3.2 … 3.5) and the synonym, opposite and preposition exercises keep their own progress.
+// Preposition cards are answered by tapping à, de or – instead of typing.
 function initWords({ $, getState, save, show }) {
   const cards = initCards({ $, getState, save, show, back: () => open() });
   const SCOPES = {
@@ -10,12 +11,13 @@ function initWords({ $, getState, save, show }) {
     '3.5': { note: '', list: 'Alle Wörter aus 3.5' },
     syn: { note: 'Zum französischen Wort ein Synonym (gleiche Bedeutung) aus Kapitel 3.2 bis 3.5 schreiben.', list: 'Alle Synonyme', items: PAIRS.syn, sub: 'Wort → Synonym', ask: 'Synonym', placeholder: 'Synonym …' },
     ant: { note: 'Zum französischen Wort das Gegenteil aus Kapitel 3.2 bis 3.5 schreiben.', list: 'Alle Gegenteile', items: PAIRS.ant, sub: 'Wort → Gegenteil', ask: 'Gegenteil', placeholder: 'Gegenteil …' },
+    prep: { note: 'Welche Präposition gehört in die Lücke: à, de oder keine (–)? Verben aus Kapitel 3.2 bis 3.5.', list: 'Alle Präpositionen', items: PREPS, sub: 'à, de oder –' },
   };
   const CHAPTERS = ['all', '3.2', '3.3', '3.4', '3.5'];
   const modeOf = sc => (SCOPES[sc].items ? sc : 'words');
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const byId = new Map([...WORDS, ...PAIRS.syn, ...PAIRS.ant].map(w => [w.id, w]));
+  const byId = new Map([...WORDS, ...PAIRS.syn, ...PAIRS.ant, ...PREPS].map(w => [w.id, w]));
   // what the card asks for and what counts: a word's own entry, or (synonyms, opposites) its partners
   const answersOf = w => w.answers || [w, ...(sameDe.get(w.de) || []).filter(x => x !== w)];
   const shownAnswer = w => w.answers ? w.answers.map(a => shownFr(a.fr)).join(' / ') : shownFr(w.fr);
@@ -68,20 +70,44 @@ function initWords({ $, getState, save, show }) {
     $('#ask-progress').textContent = loose ? `noch ${session.queue.length - session.i}` : `${session.i + 1}/${session.total}`;
     const done = loose ? session.i / Math.max(1, session.queue.length) : session.i / Math.max(1, session.total);
     $('#ask-bar').style.width = `${Math.round(done * 1000) / 10}%`;
-    $('#ask-meta').textContent = w.prompt ? `${SCOPES[scope()].ask} zu …` : `${w.group} · ${w.section}`;
-    $('#ask-de').textContent = w.prompt ? shownFr(w.prompt.fr) : w.de;
-    $('#ask-de').lang = w.prompt ? 'fr' : 'de';
-    $('#ask-hint').hidden = !w.prompt;
-    $('#ask-hint').textContent = w.prompt ? w.prompt.de : '';
+    $('#ask-meta').textContent = w.prompt ? `${SCOPES[scope()].ask} zu …` : w.choice ? 'Welche Präposition?' : `${w.group} · ${w.section}`;
+    $('#ask-de').textContent = w.prompt ? shownFr(w.prompt.fr) : w.choice ? w.gapped : w.de;
+    $('#ask-de').lang = w.prompt || w.choice ? 'fr' : 'de';
+    $('#ask-hint').hidden = !w.prompt && !w.choice;
+    $('#ask-hint').textContent = w.prompt ? w.prompt.de : w.choice ? w.de : '';
+    // preposition cards: three buttons instead of the text field
+    $('#ask-form').hidden = !!w.choice;
+    $('#ask-choices').hidden = !w.choice;
+    for (const b of document.querySelectorAll('#ask-choices button')) { b.dataset.result = ''; b.disabled = false; }
+    $('#ask-go').hidden = !!w.choice;
     const input = $('#ask-input');
     input.value = ''; input.readOnly = false; input.dataset.result = '';
     $('#ask-verdict').textContent = ''; $('#ask-verdict').dataset.result = '';
     $('#ask-result').hidden = true; $('#ask-other').hidden = true; $('#ask-diff').hidden = true;
     $('#ask-override').hidden = true;
     $('#ask-go').textContent = 'Prüfen';
-    $('#accents').hidden = false;
+    $('#accents').hidden = !!w.choice;
     show('ask');
-    input.focus();
+    if (!w.choice) input.focus();
+  }
+
+  // a preposition card: right or wrong, then the whole expression
+  function choose(picked) {
+    if (!word?.choice || checked) return;
+    checked = true;
+    const perfect = picked === word.answer;
+    for (const b of document.querySelectorAll('#ask-choices button')) {
+      b.dataset.result = b.dataset.v === word.answer ? 'right' : b.dataset.v === picked ? 'wrong' : '';
+      b.disabled = true;
+    }
+    document.activeElement?.blur?.();
+    $('#ask-verdict').dataset.result = perfect ? 'right' : 'wrong';
+    $('#ask-verdict').textContent = perfect ? 'Richtig' : word.answer === '–' ? 'Nicht ganz: keine Präposition' : 'Nicht ganz';
+    $('#ask-answer').textContent = word.full;
+    $('#ask-result').hidden = false;
+    $('#ask-go').hidden = false;
+    $('#ask-go').textContent = 'Weiter';
+    record(perfect);
   }
 
   const VERDICT = { right: 'Richtig', accent: 'Fast: Akzent', article: 'Fast: Artikel fehlt', fem: 'Fast: weibliche Form fehlt', dash: 'Fast: Bindestrich oder Leerzeichen', wrong: 'Nicht ganz', empty: 'Nicht gewusst' };
@@ -202,7 +228,7 @@ function initWords({ $, getState, save, show }) {
     show('done');
   }
 
-  const chipText = w => w.prompt ? `${shownFr(w.prompt.fr)} → ${shownAnswer(w)}` : shownFr(w.fr);
+  const chipText = w => w.prompt ? `${shownFr(w.prompt.fr)} → ${shownAnswer(w)}` : w.choice ? w.full : shownFr(w.fr);
 
   function startFirst() {
     const st = S();
@@ -275,11 +301,17 @@ function initWords({ $, getState, save, show }) {
   const fold = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   function renderList() {
     const st = S(), q = fold($('#list-search').value.trim());
-    const text = w => w.prompt ? [w.prompt.fr, w.de, ...w.answers.map(a => a.fr)].join(' ') : w.fr + ' ' + w.de;
+    const text = w => w.prompt ? [w.prompt.fr, w.de, ...w.answers.map(a => a.fr)].join(' ') : w.choice ? w.full + ' ' + w.de : w.fr + ' ' + w.de;
     const shown = selected().filter(w => !q || fold(text(w)).includes(q));
     let section = '', html = '';
     for (const w of shown) {
       const e = st.s[w.id], cls = e?.k ? 'kann' : e ? 'lernen' : 'offen';
+      if (w.choice) {
+        const head = `${w.group} · ${w.section}`;
+        if (head !== section) { section = head; html += `<h3 class="wsec">${esc(head)}</h3>`; }
+        html += `<div class="vrow wrow ${cls}"><span class="vn">${w.n}</span><span class="vinf" lang="fr">${esc(w.gapped)}</span><span class="vde"><b lang="fr">${esc(w.answer)}</b> · ${esc(w.de)}</span></div>`;
+        continue;
+      }
       if (w.prompt) {
         const head = `${w.group} · ${w.section}`;
         if (head !== section) { section = head; html += `<h3 class="wsec">${esc(head)}</h3>`; }
@@ -324,6 +356,7 @@ function initWords({ $, getState, save, show }) {
   $('#ask-back').onclick = open;
   for (const b of document.querySelectorAll('[data-to-words]')) b.onclick = open;
   $('#ask-go').onclick = () => (checked ? next() : checkWord());
+  for (const b of document.querySelectorAll('#ask-choices button')) b.onclick = () => choose(b.dataset.v);
   $('#ask-form').onsubmit = e => {
     e.preventDefault();
     // this Enter only checks; stopping it keeps the "Enter = next word" shortcut below from skipping the result
@@ -333,6 +366,8 @@ function initWords({ $, getState, save, show }) {
   addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('button')) return;
     if (!$('#ask').hidden && checked && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); next(); }
+    // preposition cards: 1 = à, 2 = de, 3 = –
+    else if (!$('#ask').hidden && word?.choice && !checked && ['1', '2', '3'].includes(e.key)) choose(['à', 'de', '–'][e.key - 1]);
   });
 
   return { open, get word() { return word; } };

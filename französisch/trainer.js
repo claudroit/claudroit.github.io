@@ -1,6 +1,7 @@
 // French word trainer (TSW Kapitel 3), built like /verben: first pass → practice → final test, saved in this browser.
 // Each chapter choice (all, 3.2 … 3.5) and the synonym and opposite exercises keep their own progress.
 function initWords({ $, getState, save, show }) {
+  const cards = initCards({ $, getState, save, show, back: () => open() });
   const SCOPES = {
     all: { note: 'TSW Kapitel 3.2 bis 3.5', list: 'Alle Wörter' },
     '3.2': { note: '', list: 'Alle Wörter aus 3.2' },
@@ -235,13 +236,18 @@ function initWords({ $, getState, save, show }) {
   const dateFmt = new Intl.DateTimeFormat('de-CH', { day: 'numeric', month: 'numeric' });
   function open() {
     const st = S(), c = counts(), count = selected().length;
-    const mode = modeOf(scope());
+    const isCards = getState().tab === 'cards';
+    const mode = isCards ? 'cards' : modeOf(scope());
     for (const b of document.querySelectorAll('#scope button')) b.setAttribute('aria-pressed', b.dataset.scope === scope());
     for (const b of document.querySelectorAll('#mode button')) b.setAttribute('aria-pressed', b.dataset.mode === mode);
-    $('#scope').hidden = mode !== 'words';
-    $('#mode-sub').textContent = SCOPES[scope()].sub || 'Deutsch → Französisch';
+    $('#scope').hidden = mode !== 'words' && mode !== 'cards';
+    // Karteikarten: the chapter row and the card settings instead of the three steps
+    for (const el of [$('#summary'), $('.steps-list'), $('.verb-list')]) el.hidden = isCards;
+    $('#cards-setup').hidden = !isCards;
+    if (isCards) cards.render(selected());
+    $('#mode-sub').textContent = isCards ? 'Karteikarten' : SCOPES[scope()].sub || 'Deutsch → Französisch';
     $('#ask-input').placeholder = SCOPES[scope()].placeholder || 'Auf Französisch …';
-    $('#scope-note').textContent = `${SCOPES[scope()].note} ${count} Wörter.`;
+    $('#scope-note').textContent = isCards ? `${SCOPES[scope()].note} ${count} Karten.`.trim() : `${SCOPES[scope()].note} ${count} Wörter.`;
     $('#list-label').textContent = SCOPES[scope()].list;
     $('#step-first').textContent = `Alle ${count} Wörter einmal, in Buchreihenfolge. Richtig kommt zu „Kann ich“, der Rest zu „Üben“`;
     $('#step-practice').textContent = 'Nur die Wörter unter „Üben“. Ein Wort sitzt, wenn du es zweimal richtig geschrieben hast';
@@ -306,7 +312,9 @@ function initWords({ $, getState, save, show }) {
   // Vokabeln goes back to the chapter chosen last
   for (const b of document.querySelectorAll('#mode button')) b.onclick = () => {
     const st = getState();
-    st.scope = b.dataset.mode === 'words' ? (CHAPTERS.includes(st.chapter) ? st.chapter : 'all') : b.dataset.mode;
+    const chapter = CHAPTERS.includes(st.chapter) ? st.chapter : 'all';
+    st.tab = b.dataset.mode === 'cards' ? 'cards' : null;
+    st.scope = b.dataset.mode === 'words' || b.dataset.mode === 'cards' ? chapter : b.dataset.mode;
     save(); open();
   };
   $('#go-first').onclick = startFirst;

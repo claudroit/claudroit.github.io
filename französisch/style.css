@@ -183,3 +183,26 @@ h2 { font-size: 22px; font-weight: 650; margin: 0 0 4px; }
 #accents { margin-top: 10px; }
 .ask-hint { margin: 6px 0 0; }
 #mode { margin-bottom: 10px; }
+
+/* Karteikarten */
+#mode { flex-wrap: wrap; }
+.cards-setup { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+.cards-setup .settings, .cards-setup .setting { margin: 0; }
+#cards-start { align-self: stretch; margin-top: 4px; }
+.flashcard {
+  width: 100%; min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 14px;
+  padding: 28px 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--faint);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06); -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.flashcard .meta { margin: 0; }
+.flashcard .side { font-size: 28px; font-weight: 600; }
+.flashcard[data-flipped="true"] { background: var(--bg); border-color: var(--ink); animation: cardflip 0.22s ease; }
+@keyframes cardflip { from { transform: rotateX(70deg); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .flashcard[data-flipped="true"] { animation: none; } }
+.cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.cards-row button, .cards-full { padding: 14px 8px; border-radius: 12px; background: var(--faint); font-weight: 600; }
+.cards-full { width: 100%; }
+.cards-row button:disabled { opacity: 0.4; cursor: default; }
+.cards-no { color: var(--bad); }
+.cards-yes { color: var(--good); }
+.cards-restart { background: var(--faint); font-weight: 600; margin-top: 6px; }

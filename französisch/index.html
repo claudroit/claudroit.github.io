@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Französisch · Kapitel 3</title>
-<link rel="stylesheet" href="style.css?v=7">
-<script defer src="words-data.js?v=7"></script>
-<script defer src="pairs-data.js?v=7"></script>
-<script defer src="prep-data.js?v=7"></script>
-<script defer src="check.js?v=7"></script>
-<script defer src="cards.js?v=7"></script>
-<script defer src="trainer.js?v=7"></script>
-<script defer src="app.js?v=7"></script>
+<link rel="stylesheet" href="style.css?v=8">
+<script defer src="words-data.js?v=8"></script>
+<script defer src="pairs-data.js?v=8"></script>
+<script defer src="prep-data.js?v=8"></script>
+<script defer src="check.js?v=8"></script>
+<script defer src="cards.js?v=8"></script>
+<script defer src="trainer.js?v=8"></script>
+<script defer src="app.js?v=8"></script>
 </head>
 <body>
 <section id="words" class="screen" hidden>
@@ -37,6 +37,8 @@
   </div>
   <p id="scope-note" class="quiet small"></p>
   <div id="cards-setup" class="cards-setup" hidden>
+    <div class="setting"><span>Karten</span><div id="cards-set" class="segmented" role="group" aria-label="Welche Karten"><button data-v="all">Alle</button><button data-v="practice">Üben</button><button data-v="test">Abschlusstest</button></div></div>
+    <p id="cards-set-note" class="quiet small" hidden></p>
     <div class="setting"><span>Modus</span><div id="cards-mode" class="segmented" role="group" aria-label="Modus"><button data-v="flip">Normal</button><button data-v="check">Wusste ich?</button></div></div>
     <div class="setting"><span>Mischen</span><div id="cards-shuffle" class="segmented" role="group" aria-label="Mischen"><button data-v="false">Aus</button><button data-v="true">An</button></div></div>
     <div class="setting"><span>Vorderseite</span><div id="cards-front" class="segmented" role="group" aria-label="Vorderseite"><button data-v="de">Deutsch</button><button data-v="fr">Französisch</button></div></div>

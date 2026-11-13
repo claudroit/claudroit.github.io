@@ -1,7 +1,8 @@
 // Karteikarten: tap a card to turn it over. Two modes, both can be shuffled:
 //  - flip: just go through the cards, back and forth
 //  - check: turn the card, then say whether you knew it; at the end the ones you didn't know can go again
-// Only the settings are saved; a round lives until the page is closed.
+// Which cards: the whole chapter, its words under „Üben“, or the words the Abschlusstest asks.
+// The vocabulary progress is only read here, never changed. Only the card settings are saved; a round lives until the page is closed.
 function initCards({ $, getState, save, show, back }) {
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -11,26 +12,40 @@ function initCards({ $, getState, save, show, back }) {
     st.cards.mode = st.cards.mode === 'check' ? 'check' : 'flip';
     st.cards.shuffle = !!st.cards.shuffle;
     st.cards.front = st.cards.front === 'fr' ? 'fr' : 'de';
+    st.cards.set = ['practice', 'test'].includes(st.cards.set) ? st.cards.set : 'all';
     return st.cards;
   };
-  let words = [];          // the chapter's words, in book order
+  let sets = { all: [], practice: [], test: [] };   // in book order
+  let words = [];          // the chosen set
   let round = null;        // { cards: [word], i, flipped, known: [word], unknown: [word] }
 
   // ---------- setup, inside the overview ----------
-  function render(list) {
-    words = list;
+  function render(lists = sets) {
+    sets = lists;
     const c = settings();
+    words = sets[c.set];
+    const names = { all: 'Alle', practice: 'Üben', test: 'Abschlusstest' };
+    for (const b of document.querySelectorAll('#cards-set button')) {
+      b.setAttribute('aria-pressed', b.dataset.v === c.set);
+      b.textContent = `${names[b.dataset.v]} (${sets[b.dataset.v].length})`;
+    }
+    $('#cards-set-note').textContent = c.set === 'practice'
+      ? 'Die Wörter, die im Vokabelteil unter „Üben“ stehen. Dein Fortschritt dort bleibt, wie er ist.'
+      : c.set === 'test' ? 'Die Wörter, die der Abschlusstest im Vokabelteil abfragt. Dein Fortschritt dort bleibt, wie er ist.' : '';
+    $('#cards-set-note').hidden = c.set === 'all';
+    $('#cards-start').disabled = !words.length;
     for (const b of document.querySelectorAll('#cards-mode button')) b.setAttribute('aria-pressed', b.dataset.v === c.mode);
     for (const b of document.querySelectorAll('#cards-shuffle button')) b.setAttribute('aria-pressed', b.dataset.v === String(c.shuffle));
     for (const b of document.querySelectorAll('#cards-front button')) b.setAttribute('aria-pressed', b.dataset.v === c.front);
     $('#cards-mode-note').textContent = c.mode === 'check'
       ? 'Karte umdrehen, dann sagen, ob du es gewusst hast. Am Ende kommen die nicht gewussten nochmal.'
       : 'Karte antippen zum Umdrehen, mit den Pfeilen vor und zurück.';
-    $('#cards-start').textContent = `${words.length} Karten starten`;
+    $('#cards-start').textContent = words.length ? `${words.length} Karten starten` : 'Keine Karten';
   }
   const pick = (id, key, parse) => {
-    for (const b of document.querySelectorAll(`#${id} button`)) b.onclick = () => { settings()[key] = parse(b.dataset.v); save(); render(words); };
+    for (const b of document.querySelectorAll(`#${id} button`)) b.onclick = () => { settings()[key] = parse(b.dataset.v); save(); render(); };
   };
+  pick('cards-set', 'set', v => v);
   pick('cards-mode', 'mode', v => v);
   pick('cards-shuffle', 'shuffle', v => v === 'true');
   pick('cards-front', 'front', v => v);

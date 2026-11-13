@@ -270,7 +270,12 @@ function initWords({ $, getState, save, show }) {
     // Karteikarten: the chapter row and the card settings instead of the three steps
     for (const el of [$('#summary'), $('.steps-list'), $('.verb-list')]) el.hidden = isCards;
     $('#cards-setup').hidden = !isCards;
-    if (isCards) cards.render(selected());
+    // the cards read the progress of this chapter, they never change it
+    if (isCards) cards.render({
+      all: selected(),
+      practice: selected().filter(w => st.s[w.id] && !st.s[w.id].k),
+      test: (() => { const ids = new Set(st.run ? st.run.order : testIds()); return selected().filter(w => ids.has(w.id)); })(),
+    });
     $('#mode-sub').textContent = isCards ? 'Karteikarten' : SCOPES[scope()].sub || 'Deutsch → Französisch';
     $('#ask-input').placeholder = SCOPES[scope()].placeholder || 'Auf Französisch …';
     $('#scope-note').textContent = isCards ? `${SCOPES[scope()].note} ${count} Karten.`.trim() : `${SCOPES[scope()].note} ${count} Wörter.`;

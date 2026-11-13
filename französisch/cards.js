@@ -41,7 +41,7 @@ function initCards({ $, getState, save, show, back, markKnown }) {
     for (const b of document.querySelectorAll('#cards-shuffle button')) b.setAttribute('aria-pressed', b.dataset.v === String(c.shuffle));
     for (const b of document.querySelectorAll('#cards-front button')) b.setAttribute('aria-pressed', b.dataset.v === c.front);
     $('#cards-mode-note').textContent = c.mode === 'count'
-      ? 'Wie „Wusste ich?“, aber ein Wort aus „Üben“, das du gewusst hast, kommt im Vokabelteil sofort zu „Kann ich“. Nicht gewusst ändert nichts.'
+      ? 'Ein Wort aus „Üben“, das du gewusst hast, kommt im Vokabelteil sofort zu „Kann ich“. Nicht gewusst kommt etwa 4 Karten später nochmal, bis du es weisst.'
       : c.mode === 'check'
       ? 'Karte umdrehen, dann sagen, ob du es gewusst hast. Am Ende kommen die nicht gewussten nochmal.'
       : 'Karte antippen zum Umdrehen, mit den Pfeilen vor und zurück.';
@@ -65,7 +65,8 @@ function initCards({ $, getState, save, show, back, markKnown }) {
     const c = settings(), w = round.cards[round.i], n = round.cards.length;
     const fr = round.flipped !== (c.front === 'fr');       // which side is up
     $('#cards-title').textContent = c.mode === 'count' ? 'Üben zählt' : c.mode === 'check' ? 'Wusste ich?' : 'Karteikarten';
-    $('#cards-progress').textContent = `${round.i + 1}/${n}`;
+    // „Üben zählt“ grows while you go (cards you didn't know come back), so it counts down like „Üben“
+    $('#cards-progress').textContent = c.mode === 'count' ? `noch ${n - round.i}` : `${round.i + 1}/${n}`;
     $('#cards-bar').style.width = `${Math.round((round.i + (grading(c.mode) && round.flipped ? 0.5 : 0)) / n * 1000) / 10}%`;
     $('#card-meta').textContent = `${w.group} · ${w.section} · ${fr ? 'Französisch' : 'Deutsch'}`;
     $('#card-text').textContent = fr ? shownFr(w.fr) : w.de;
@@ -89,18 +90,28 @@ function initCards({ $, getState, save, show, back, markKnown }) {
   function grade(knew) {
     if (!round.flipped) return;
     const w = round.cards[round.i];
-    (knew ? round.known : round.unknown).push(w);
-    if (knew && settings().mode === 'count' && markKnown(w.id)) round.moved++;
+    const count = settings().mode === 'count';
+    if (knew) round.known.push(w);
+    else if (!round.unknown.includes(w)) round.unknown.push(w);
+    if (knew && count && markKnown(w.id)) round.moved++;
+    // „Üben zählt“: a card you didn't know comes back about 4 cards later, like in „Üben“
+    if (!knew && count) round.cards.splice(Math.min(round.cards.length, round.i + 4), 0, w);
     go(1);
   }
   function finish() {
     const c = settings(), n = round.cards.length, miss = round.unknown;
     const again = $('#cards-again'), restart = $('#cards-restart');
     $('#cards-done-list').innerHTML = '';
-    if (grading(c.mode)) {
+    if (c.mode === 'count') {
+      $('#cards-done-title').textContent = `Alle ${round.known.length} gewusst`;
+      $('#cards-done-text').textContent = `${round.moved} ${round.moved === 1 ? 'Wort ist' : 'Wörter sind'} jetzt bei „Kann ich“.`
+        + (miss.length === 1 ? ' Dieses kam öfter dran:' : miss.length ? ` Diese ${miss.length} kamen öfter dran:` : '');
+      $('#cards-done-list').innerHTML = miss.map(w => `<span class="chip" lang="fr">${esc(shownFr(w.fr))}</span>`).join('');
+      again.hidden = true;
+      restart.classList.add('primary');
+    } else if (grading(c.mode)) {
       $('#cards-done-title').textContent = `${round.known.length} von ${n} gewusst`;
-      const moved = c.mode === 'count' ? `${round.moved} ${round.moved === 1 ? 'Wort ist' : 'Wörter sind'} jetzt bei „Kann ich“. ` : '';
-      $('#cards-done-text').textContent = moved + (miss.length ? 'Nicht gewusst:' : 'Alle gewusst.');
+      $('#cards-done-text').textContent = miss.length ? 'Nicht gewusst:' : 'Alle gewusst.';
       $('#cards-done-list').innerHTML = miss.map(w => `<span class="chip" lang="fr">${esc(shownFr(w.fr))}</span>`).join('');
       again.hidden = !miss.length;
       again.textContent = `Die ${miss.length} nochmal`;

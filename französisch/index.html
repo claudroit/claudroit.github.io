@@ -4,14 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Französisch · Kapitel 3</title>
-<link rel="stylesheet" href="style.css?v=11">
-<script defer src="words-data.js?v=11"></script>
-<script defer src="pairs-data.js?v=11"></script>
-<script defer src="prep-data.js?v=11"></script>
-<script defer src="check.js?v=11"></script>
-<script defer src="cards.js?v=11"></script>
-<script defer src="trainer.js?v=11"></script>
-<script defer src="app.js?v=11"></script>
+<link rel="stylesheet" href="style.css?v=12">
+<script defer src="words-data.js?v=12"></script>
+<script defer src="pairs-data.js?v=12"></script>
+<script defer src="prep-data.js?v=12"></script>
+<script defer src="check.js?v=12"></script>
+<script defer src="cards.js?v=12"></script>
+<script defer src="trainer.js?v=12"></script>
+<script defer src="app.js?v=12"></script>
+<script defer src="backup.js?v=12"></script>
 </head>
 <body>
 <section id="words" class="screen" hidden>
@@ -68,6 +69,21 @@
     <input id="list-search" class="conj-input list-search" type="search" placeholder="Französisch oder Deutsch suchen …" autocomplete="off" autocapitalize="off" spellcheck="false">
     <div id="word-list"></div>
   </details>
+  <div class="backup">
+    <h2>Fortschritt sichern</h2>
+    <p class="quiet small">Als Datei speichern oder als Text kopieren, z. B. für ein anderes Gerät. Beim Importieren wird der Fortschritt in diesem Browser ersetzt.</p>
+    <div class="backup-row">
+      <button id="backup-export" type="button">Exportieren</button>
+      <button id="backup-import" type="button">Importieren</button>
+      <input id="backup-file" type="file" accept=".json,application/json,text/plain" hidden>
+    </div>
+    <div class="backup-row small">
+      <button id="backup-copy" type="button" class="link">Als Text kopieren</button>
+      <button id="backup-paste" type="button" class="link">Text einfügen</button>
+      <button id="backup-undo" type="button" class="link" hidden>Letzten Import rückgängig</button>
+    </div>
+    <p id="backup-status" class="quiet small" role="status"></p>
+  </div>
 </section>
 
 <section id="ask" class="screen" hidden>

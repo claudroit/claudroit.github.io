@@ -222,3 +222,11 @@ h2 { font-size: 22px; font-weight: 650; margin: 0 0 4px; }
 .card-line { display: block; }
 .card-line + .card-line { margin-top: 4px; }
 .card-also { color: var(--soft); font-size: 15px; max-width: 28em; }
+
+/* Fortschritt sichern */
+.backup { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.backup h2 { font-size: 17px; margin: 0; }
+.backup-row { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.backup-row:not(.small) button { padding: 10px 16px; border-radius: 10px; background: var(--faint); font-weight: 600; }
+#backup-status[data-error="true"] { color: var(--bad); }
+#backup-status[data-ok="true"] { color: var(--good); }

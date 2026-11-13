@@ -219,3 +219,6 @@ h2 { font-size: 22px; font-weight: 650; margin: 0 0 4px; }
 #mode button { min-width: 0; }
 @media (max-width: 374px) { #mode button { font-size: 12px; padding: 5px 2px; letter-spacing: -0.01em; } }
 #cards-start:disabled { opacity: 0.45; cursor: default; }
+.card-line { display: block; }
+.card-line + .card-line { margin-top: 4px; }
+.card-also { color: var(--soft); font-size: 15px; max-width: 28em; }

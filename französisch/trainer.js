@@ -2,7 +2,15 @@
 // Each chapter choice (all, 3.2 … 3.5) and the synonym, opposite and preposition exercises keep their own progress.
 // Preposition cards are answered by tapping à, de or – instead of typing.
 function initWords({ $, getState, save, show }) {
-  const cards = initCards({ $, getState, save, show, back: () => open() });
+  // „Üben zählt“ in the cards: a word from „Üben“ you knew counts as learned (only that, nothing else changes)
+  const markKnown = id => {
+    const e = S().s[id];
+    if (!e || e.k) return false;
+    S().s[id] = { k: 1 };
+    save();
+    return true;
+  };
+  const cards = initCards({ $, getState, save, show, back: () => open(), markKnown });
   const SCOPES = {
     all: { note: 'TSW Kapitel 3.2 bis 3.5', list: 'Alle Wörter' },
     '3.2': { note: '', list: 'Alle Wörter aus 3.2' },

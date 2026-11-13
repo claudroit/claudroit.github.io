@@ -2,14 +2,16 @@
 //  - flip: just go through the cards, back and forth
 //  - check: turn the card, then say whether you knew it; at the end the ones you didn't know can go again
 // Which cards: the whole chapter, its words under „Üben“, or the words the Abschlusstest asks.
-// The vocabulary progress is only read here, never changed. Only the card settings are saved; a round lives until the page is closed.
-function initCards({ $, getState, save, show, back }) {
+// The vocabulary progress is only read here, except in the mode „Üben zählt“: a word from „Üben“ you knew moves to „Kann ich“
+// (nothing else changes, not knowing a word changes nothing). Only the card settings are saved; a round lives until the page is closed.
+function initCards({ $, getState, save, show, back, markKnown }) {
+  const grading = m => m !== 'flip';   // check and count: say whether you knew it
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const settings = () => {
     const st = getState();
     st.cards ||= {};
-    st.cards.mode = st.cards.mode === 'check' ? 'check' : 'flip';
+    st.cards.mode = ['check', 'count'].includes(st.cards.mode) ? st.cards.mode : 'flip';
     st.cards.shuffle = !!st.cards.shuffle;
     st.cards.front = st.cards.front === 'fr' ? 'fr' : 'de';
     st.cards.set = ['practice', 'test'].includes(st.cards.set) ? st.cards.set : 'all';
@@ -29,15 +31,18 @@ function initCards({ $, getState, save, show, back }) {
       b.setAttribute('aria-pressed', b.dataset.v === c.set);
       b.textContent = `${names[b.dataset.v]} (${sets[b.dataset.v].length})`;
     }
+    const kept = c.mode === 'count' ? '' : ' Dein Fortschritt dort bleibt, wie er ist.';
     $('#cards-set-note').textContent = c.set === 'practice'
-      ? 'Die Wörter, die im Vokabelteil unter „Üben“ stehen. Dein Fortschritt dort bleibt, wie er ist.'
-      : c.set === 'test' ? 'Die Wörter, die der Abschlusstest im Vokabelteil abfragt. Dein Fortschritt dort bleibt, wie er ist.' : '';
+      ? 'Die Wörter, die im Vokabelteil unter „Üben“ stehen.' + kept
+      : c.set === 'test' ? 'Die Wörter, die der Abschlusstest im Vokabelteil abfragt.' + kept : '';
     $('#cards-set-note').hidden = c.set === 'all';
     $('#cards-start').disabled = !words.length;
     for (const b of document.querySelectorAll('#cards-mode button')) b.setAttribute('aria-pressed', b.dataset.v === c.mode);
     for (const b of document.querySelectorAll('#cards-shuffle button')) b.setAttribute('aria-pressed', b.dataset.v === String(c.shuffle));
     for (const b of document.querySelectorAll('#cards-front button')) b.setAttribute('aria-pressed', b.dataset.v === c.front);
-    $('#cards-mode-note').textContent = c.mode === 'check'
+    $('#cards-mode-note').textContent = c.mode === 'count'
+      ? 'Wie „Wusste ich?“, aber ein Wort aus „Üben“, das du gewusst hast, kommt im Vokabelteil sofort zu „Kann ich“. Nicht gewusst ändert nichts.'
+      : c.mode === 'check'
       ? 'Karte umdrehen, dann sagen, ob du es gewusst hast. Am Ende kommen die nicht gewussten nochmal.'
       : 'Karte antippen zum Umdrehen, mit den Pfeilen vor und zurück.';
     $('#cards-start').textContent = words.length ? `${words.length} Karten starten` : 'Keine Karten';
@@ -53,15 +58,15 @@ function initCards({ $, getState, save, show, back }) {
   // ---------- a round ----------
   function start(list) {
     const c = settings();
-    round = { cards: c.shuffle ? shuffle(list) : [...list], i: 0, flipped: false, known: [], unknown: [] };
+    round = { cards: c.shuffle ? shuffle(list) : [...list], i: 0, flipped: false, known: [], unknown: [], moved: 0 };
     draw();
   }
   function draw() {
     const c = settings(), w = round.cards[round.i], n = round.cards.length;
     const fr = round.flipped !== (c.front === 'fr');       // which side is up
-    $('#cards-title').textContent = c.mode === 'check' ? 'Wusste ich?' : 'Karteikarten';
+    $('#cards-title').textContent = c.mode === 'count' ? 'Üben zählt' : c.mode === 'check' ? 'Wusste ich?' : 'Karteikarten';
     $('#cards-progress').textContent = `${round.i + 1}/${n}`;
-    $('#cards-bar').style.width = `${Math.round((round.i + (c.mode === 'check' && round.flipped ? 0.5 : 0)) / n * 1000) / 10}%`;
+    $('#cards-bar').style.width = `${Math.round((round.i + (grading(c.mode) && round.flipped ? 0.5 : 0)) / n * 1000) / 10}%`;
     $('#card-meta').textContent = `${w.group} · ${w.section} · ${fr ? 'Französisch' : 'Deutsch'}`;
     $('#card-text').textContent = fr ? shownFr(w.fr) : w.de;
     $('#card-text').lang = fr ? 'fr' : 'de';
@@ -70,8 +75,8 @@ function initCards({ $, getState, save, show, back }) {
     $('#cards-flip-nav').hidden = c.mode !== 'flip';
     $('#cards-prev').disabled = round.i === 0;
     $('#cards-next').textContent = round.i === n - 1 ? 'Fertig' : 'Weiter ›';
-    $('#cards-turn').hidden = c.mode !== 'check' || round.flipped;
-    $('#cards-grade').hidden = c.mode !== 'check' || !round.flipped;
+    $('#cards-turn').hidden = !grading(c.mode) || round.flipped;
+    $('#cards-grade').hidden = !grading(c.mode) || !round.flipped;
     show('cards');
   }
   function flip() { round.flipped = !round.flipped; draw(); }
@@ -83,16 +88,19 @@ function initCards({ $, getState, save, show, back }) {
   }
   function grade(knew) {
     if (!round.flipped) return;
-    (knew ? round.known : round.unknown).push(round.cards[round.i]);
+    const w = round.cards[round.i];
+    (knew ? round.known : round.unknown).push(w);
+    if (knew && settings().mode === 'count' && markKnown(w.id)) round.moved++;
     go(1);
   }
   function finish() {
     const c = settings(), n = round.cards.length, miss = round.unknown;
     const again = $('#cards-again'), restart = $('#cards-restart');
     $('#cards-done-list').innerHTML = '';
-    if (c.mode === 'check') {
+    if (grading(c.mode)) {
       $('#cards-done-title').textContent = `${round.known.length} von ${n} gewusst`;
-      $('#cards-done-text').textContent = miss.length ? `Nicht gewusst:` : 'Alle gewusst.';
+      const moved = c.mode === 'count' ? `${round.moved} ${round.moved === 1 ? 'Wort ist' : 'Wörter sind'} jetzt bei „Kann ich“. ` : '';
+      $('#cards-done-text').textContent = moved + (miss.length ? 'Nicht gewusst:' : 'Alle gewusst.');
       $('#cards-done-list').innerHTML = miss.map(w => `<span class="chip" lang="fr">${esc(shownFr(w.fr))}</span>`).join('');
       again.hidden = !miss.length;
       again.textContent = `Die ${miss.length} nochmal`;
@@ -122,7 +130,7 @@ function initCards({ $, getState, save, show, back }) {
   // keys: space/enter turns, arrows go back and forth; when checking, ← or 1 = didn't know, → or 2 = knew
   addEventListener('keydown', e => {
     if ($('#cards').hidden || e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('button')) return;
-    const check = settings().mode === 'check';
+    const check = grading(settings().mode);
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!check || !round.flipped) flip(); }
     else if (e.key === 'ArrowLeft' || (check && e.key === '1')) { e.preventDefault(); check ? grade(false) : go(-1); }
     else if (e.key === 'ArrowRight' || (check && e.key === '2')) { e.preventDefault(); check ? grade(true) : go(1); }
